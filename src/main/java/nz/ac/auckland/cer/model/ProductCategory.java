@@ -4,7 +4,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity
-public class ProductCategory extends Category {
+public class ProductCategory extends OneToManyCategory {
 
     @OneToMany(mappedBy="productCategory")
     private Set<Product> products;

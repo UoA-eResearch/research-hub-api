@@ -1,24 +1,24 @@
 package nz.ac.auckland.cer.model;
 
-
 import javax.persistence.*;
 import java.util.Set;
 
+
 @MappedSuperclass
-public abstract class Category {
+public abstract class ManyToManyCategory {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
 
-    @OneToMany
+    @ManyToMany
     private Set<Product> products;
 
-    public Category(){
+    public ManyToManyCategory() {
 
     }
 
-    public Category(String name) {
+    public ManyToManyCategory(String name) {
         this.name = name;
     }
 
@@ -45,20 +45,5 @@ public abstract class Category {
     public void setProducts(Set<Product> products) {
         this.products = products;
     }
-
-    @Override
-    public String toString() {
-        String result = String.format(
-                "Category[id=%d, name='%s']%n",
-                id, name);
-        if (products != null) {
-            for(Product product : products) {
-                result += String.format(
-                        "Product[id=%d, name='%s']%n",
-                        product.getId(), product.getName());
-            }
-        }
-
-        return result;
-    }
 }
+

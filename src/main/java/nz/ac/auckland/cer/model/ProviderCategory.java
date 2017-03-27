@@ -5,7 +5,7 @@ import java.util.Set;
 
 
 @Entity
-public class ProviderCategory extends Category {
+public class ProviderCategory extends OneToManyCategory {
 
     @OneToMany(mappedBy="providerCategory")
     private Set<Product> products;

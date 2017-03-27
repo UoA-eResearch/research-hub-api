@@ -1,16 +1,28 @@
 package nz.ac.auckland.cer.model;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
     private String summary;
     private String imageUri;
 
+    @ManyToOne
+    @JoinColumn(name = "product_category_id")
     private ProductCategory productCategory;
+
+    @ManyToOne
+    @JoinColumn(name = "provider_category_id")
     private ProviderCategory providerCategory;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "product_lifecycle", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "lifecycle_id", referencedColumnName = "id"))
+    private Set<LifecycleCategory> lifecycleCategories;
 
     public Product() {
 
@@ -20,16 +32,15 @@ public class Product {
         this.name = name;
     }
 
-    public Product(String name, ProductCategory productCategory, ProviderCategory providerCategory, String summary, String imageUri) {
+    public Product(String name, ProductCategory productCategory, ProviderCategory providerCategory, String summary, String imageUri, Set<LifecycleCategory> lifecycleCategories) {
         this.name = name;
         this.productCategory = productCategory;
         this.providerCategory = providerCategory;
         this.summary = summary;
         this.imageUri = imageUri;
+        this.lifecycleCategories = lifecycleCategories;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     public int getId() {
         return id;
     }
@@ -46,8 +57,6 @@ public class Product {
         this.name = name;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "product_category_id")
     public ProductCategory getProductCategory() {
         return productCategory;
     }
@@ -56,8 +65,6 @@ public class Product {
         this.productCategory = productCategory;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "provider_category_id")
     public ProviderCategory getProviderCategory() {
         return providerCategory;
     }
@@ -80,5 +87,13 @@ public class Product {
 
     public void setImageUri(String imageUri) {
         this.imageUri = imageUri;
+    }
+
+    public Set<LifecycleCategory> getLifecycleCategories() {
+        return lifecycleCategories;
+    }
+
+    public void setLifecycleCategories(Set<LifecycleCategory> lifecycleCategories) {
+        this.lifecycleCategories = lifecycleCategories;
     }
 }
