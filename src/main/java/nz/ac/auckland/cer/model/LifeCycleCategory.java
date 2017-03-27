@@ -5,16 +5,16 @@ import javax.persistence.ManyToMany;
 import java.util.Set;
 
 @Entity
-public class LifecycleCategory extends ManyToManyCategory {
+public class LifeCycleCategory extends ManyToManyCategory {
 
-    @ManyToMany(mappedBy="lifecycleCategories")
+    @ManyToMany(mappedBy="lifeCycleCategories")
     private Set<Product> products;
 
-    public LifecycleCategory() {
+    public LifeCycleCategory() {
         super();
     }
 
-    public LifecycleCategory(String name) {
+    public LifeCycleCategory(String name) {
         super(name);
     }
 }

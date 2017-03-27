@@ -22,8 +22,8 @@ CREATE TABLE `provider_category` (
   PRIMARY KEY (`id`,`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `lifecycle_category`;
-CREATE TABLE `lifecycle_category` (
+DROP TABLE IF EXISTS `life_cycle_category`;
+CREATE TABLE `life_cycle_category` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`,`name`)
@@ -50,13 +50,13 @@ CREATE TABLE `product` (
 
 -- Table structure for many to many relationships
 
-DROP TABLE IF EXISTS `product_lifecycle`;
-CREATE TABLE `product_lifecycle` (
+DROP TABLE IF EXISTS `product_life_cycle`;
+CREATE TABLE `product_life_cycle` (
   `product_id` int(11) unsigned NOT NULL,
-  `lifecycle_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`product_id`,`lifecycle_id`),
+  `life_cycle_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`product_id`,`life_cycle_id`),
   KEY `fk_bookpublisher_book_idx` (`product_id`),
-  KEY `fk_bookpublisher_lifecycle_idx` (`lifecycle_id`),
+  KEY `fk_bookpublisher_lifecycle_idx` (`life_cycle_id`),
   CONSTRAINT `fk_productlifecycle_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_productlifecycle_lifecycle` FOREIGN KEY (`lifecycle_id`) REFERENCES `lifecycle_category` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_productlifecycle_lifecycle` FOREIGN KEY (`life_cycle_id`) REFERENCES `life_cycle_category` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

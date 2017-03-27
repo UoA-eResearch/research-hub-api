@@ -21,8 +21,8 @@ public class Product {
     private ProviderCategory providerCategory;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "product_lifecycle", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "lifecycle_id", referencedColumnName = "id"))
-    private Set<LifecycleCategory> lifecycleCategories;
+    @JoinTable(name = "product_life_cycle", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "life_cycle_id", referencedColumnName = "id"))
+    private Set<LifeCycleCategory> lifeCycleCategories;
 
     public Product() {
 
@@ -32,13 +32,13 @@ public class Product {
         this.name = name;
     }
 
-    public Product(String name, ProductCategory productCategory, ProviderCategory providerCategory, String summary, String imageUri, Set<LifecycleCategory> lifecycleCategories) {
+    public Product(String name, ProductCategory productCategory, ProviderCategory providerCategory, String summary, String imageUri, Set<LifeCycleCategory> lifeCycleCategories) {
         this.name = name;
         this.productCategory = productCategory;
         this.providerCategory = providerCategory;
         this.summary = summary;
         this.imageUri = imageUri;
-        this.lifecycleCategories = lifecycleCategories;
+        this.lifeCycleCategories = lifeCycleCategories;
     }
 
     public int getId() {
@@ -89,11 +89,11 @@ public class Product {
         this.imageUri = imageUri;
     }
 
-    public Set<LifecycleCategory> getLifecycleCategories() {
-        return lifecycleCategories;
+    public Set<LifeCycleCategory> getLifeCycleCategories() {
+        return lifeCycleCategories;
     }
 
-    public void setLifecycleCategories(Set<LifecycleCategory> lifecycleCategories) {
-        this.lifecycleCategories = lifecycleCategories;
+    public void setLifecycleCategories(Set<LifeCycleCategory> lifecycleCategories) {
+        this.lifeCycleCategories = lifecycleCategories;
     }
 }
