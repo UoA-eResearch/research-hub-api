@@ -1,27 +1,34 @@
-package nz.ac.auckland.cer.model;
+package nz.ac.auckland.cer.model.content;
 
 import nz.ac.auckland.cer.model.Product;
 
 import javax.persistence.*;
-import java.util.Set;
+
 
 
 @MappedSuperclass
-public abstract class ManyToManyCategory {
+public abstract class Content {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
 
-    @ManyToMany
-    private Set<Product> products;
+    @ManyToOne()
+    @JoinColumn(name="product_id")
+    private Product product;
 
-    public ManyToManyCategory() {
+    public Content() {
 
     }
 
-    public ManyToManyCategory(String name) {
+    public Content(String name) {
         this.name = name;
+    }
+
+    public Content(String name, Product product) {
+        this.name = name;
+        this.product = product;
     }
 
     public int getId() {
@@ -40,12 +47,11 @@ public abstract class ManyToManyCategory {
         this.name = name;
     }
 
-    public Set<Product> getProducts() {
-        return products;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProducts(Set<Product> products) {
-        this.products = products;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }
-

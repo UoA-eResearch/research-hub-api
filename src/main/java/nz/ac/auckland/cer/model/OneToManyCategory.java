@@ -1,6 +1,8 @@
 package nz.ac.auckland.cer.model;
 
 
+import nz.ac.auckland.cer.model.Product;
+
 import javax.persistence.*;
 import java.util.Set;
 

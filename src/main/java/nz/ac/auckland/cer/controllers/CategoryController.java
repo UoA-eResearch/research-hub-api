@@ -1,11 +1,11 @@
 package nz.ac.auckland.cer.controllers;
 
-import nz.ac.auckland.cer.model.LifeCycleCategory;
-import nz.ac.auckland.cer.model.ProductCategory;
-import nz.ac.auckland.cer.model.ProviderCategory;
-import nz.ac.auckland.cer.repository.LifeCycleCategoryRepository;
-import nz.ac.auckland.cer.repository.ProductCategoryRepository;
-import nz.ac.auckland.cer.repository.ProviderCategoryRepository;
+import nz.ac.auckland.cer.model.categories.LifeCycle;
+import nz.ac.auckland.cer.model.categories.ProductType;
+import nz.ac.auckland.cer.model.categories.Provider;
+import nz.ac.auckland.cer.repository.LifeCycleRepository;
+import nz.ac.auckland.cer.repository.ProductTypeRepository;
+import nz.ac.auckland.cer.repository.ProviderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,26 +17,26 @@ import java.util.Collection;
 public class CategoryController {
 
     @Autowired
-    private ProductCategoryRepository productCategoryRepository;
+    private ProductTypeRepository productTypeRepository;
 
     @Autowired
-    private ProviderCategoryRepository providerCategoryRepository;
+    private ProviderRepository providerRepository;
 
     @Autowired
-    private LifeCycleCategoryRepository lifeCycleStages;
+    private LifeCycleRepository lifeCycleStages;
 
     @RequestMapping(method = RequestMethod.GET, value = "/category/product")
-    public Collection<ProductCategory> getProductCategories() {
-        return productCategoryRepository.findAll();
+    public Collection<ProductType> getProductCategories() {
+        return productTypeRepository.findAll();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/category/provider")
-    public Collection<ProviderCategory> getProviders() {
-        return providerCategoryRepository.findAll();
+    public Collection<Provider> getProviders() {
+        return providerRepository.findAll();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/category/lifecycle")
-    public Collection<LifeCycleCategory> getLifeCycleStage() {
+    public Collection<LifeCycle> getLifeCycleStage() {
         return lifeCycleStages.findAll();
     }
 }
