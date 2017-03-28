@@ -1,5 +1,6 @@
 package nz.ac.auckland.cer.model;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import nz.ac.auckland.cer.model.categories.*;
 import nz.ac.auckland.cer.model.content.*;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 import java.util.Set;
 
 @Entity
+@JsonFilter("Product")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,62 +28,75 @@ public class Product {
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Provider provider;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("lifeCycleStages")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_life_cycle", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "life_cycle_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<LifeCycle> lifeCycleStages;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("eligibleGroups")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_eligibility", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "eligibility_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<Eligibility> eligibleGroups;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("serviceTypes")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_service_type", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "service_type_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<ServiceType> serviceTypes;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("programmes")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_programme", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "programme_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<ServiceType> programmes;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("studyLevels")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_study_level", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "study_level_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<StudyLevel> studyLevels;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @JsonFilter("cost")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_cost", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "cost_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<Cost> cost;
 
     // Content
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("requirements")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Requirement> requirements;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("features")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Feature> features;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("limitations")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Limitation> limitations;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("considerations")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Consideration> considerations;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("support")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Support> support;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("references")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Reference> references;
 
-    @OneToMany(mappedBy = "product")
+    @JsonFilter("contacts")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "product")
     @JsonIgnoreProperties(value = "product", allowSetters=true)
     private Set<Contact> contacts;
 
