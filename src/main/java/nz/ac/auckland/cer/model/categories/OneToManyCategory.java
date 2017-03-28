@@ -1,4 +1,4 @@
-package nz.ac.auckland.cer.model;
+package nz.ac.auckland.cer.model.categories;
 
 
 import nz.ac.auckland.cer.model.Product;
