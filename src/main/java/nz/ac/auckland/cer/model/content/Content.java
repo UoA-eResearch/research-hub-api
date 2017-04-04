@@ -5,7 +5,6 @@ import nz.ac.auckland.cer.model.Product;
 import javax.persistence.*;
 
 
-
 @MappedSuperclass
 public abstract class Content {
 

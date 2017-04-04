@@ -2,7 +2,8 @@ package nz.ac.auckland.cer.model.categories;
 
 import nz.ac.auckland.cer.model.Product;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.Set;
 
 @Entity

@@ -1,15 +1,15 @@
 package nz.ac.auckland.cer.model.categories;
 
 import nz.ac.auckland.cer.model.Product;
-
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.Set;
 
 
 @Entity
-public class Provider extends ManyToManyCategory {
+public class Provider extends OneToManyCategory {
 
-    @ManyToMany(mappedBy="provider")
+    @OneToMany(mappedBy="provider")
     private Set<Product> products;
 
     public Provider() {

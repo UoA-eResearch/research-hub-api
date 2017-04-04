@@ -2,7 +2,7 @@ package nz.ac.auckland.cer.model.content;
 
 import nz.ac.auckland.cer.model.Product;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 
 
 @Entity

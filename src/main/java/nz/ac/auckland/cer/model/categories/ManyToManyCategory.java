@@ -20,6 +20,10 @@ public abstract class ManyToManyCategory {
 
     }
 
+    public ManyToManyCategory(int id) {
+        this.id = id;
+    }
+
     public ManyToManyCategory(String name) {
         this.name = name;
     }

@@ -1,7 +1,7 @@
 package nz.ac.auckland.cer;
 
-import nz.ac.auckland.cer.model.categories.*;
 import nz.ac.auckland.cer.model.Product;
+import nz.ac.auckland.cer.model.categories.*;
 import nz.ac.auckland.cer.model.content.*;
 import nz.ac.auckland.cer.repository.*;
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ public class ResearchHubApiApplication implements CommandLineRunner {
             add(eligibleAcadStaff);
         }});
 
-        figshare.setCost(new HashSet<Cost>() {{
+        figshare.setCosts(new HashSet<Cost>() {{
             add(costFree);
         }});
         figshare.setLifeCycleStages(new HashSet<LifeCycle>(){{
@@ -161,8 +161,12 @@ public class ResearchHubApiApplication implements CommandLineRunner {
         winterBootcamp.setStudyLevels(new HashSet<StudyLevel>(){{
             add(studyAll);
         }});
-        winterBootcamp.setCost(new HashSet<Cost>(){{
+        winterBootcamp.setCosts(new HashSet<Cost>(){{
             add(costFree);
+        }});
+
+        figshare.setLifeCycleStages(new HashSet<LifeCycle>(){{
+            add(analyse);
         }});
 
         productRepository.save(new HashSet<Product>() {{
@@ -210,5 +214,15 @@ public class ResearchHubApiApplication implements CommandLineRunner {
             add(new Contact("Marcus Binsteiner", "m.binsteiner@auckland.ac.nz", figshare));
             add(new Contact("Marcus Binsteiner", "m.binsteiner@auckland.ac.nz", winterBootcamp));
         }});
+
+//        QProvider provider;
+
+//        QProduct product = QProduct.product;
+//        JPQLQuery query = new HibernateQuery (session);
+//        Product bob = query.from(product)
+//                .where(product.summary.like("%ootcamp%"))
+//                .uniqueResult(product);
+
+
     }
 }

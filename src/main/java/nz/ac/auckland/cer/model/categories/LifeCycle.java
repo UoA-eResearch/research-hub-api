@@ -9,11 +9,15 @@ import java.util.Set;
 @Entity
 public class LifeCycle extends ManyToManyCategory {
 
-    @ManyToMany(mappedBy="lifeCycle")
+    @ManyToMany(mappedBy="lifeCycleStages")
     private Set<Product> products;
 
     public LifeCycle() {
         super();
+    }
+
+    public LifeCycle(int id) {
+        super(id);
     }
 
     public LifeCycle(String name) {

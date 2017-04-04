@@ -50,7 +50,7 @@ public class Product {
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_programme", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "programme_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
-    private Set<ServiceType> programmes;
+    private Set<Programme> programmes;
 
     @JsonFilter("studyLevels")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -58,11 +58,11 @@ public class Product {
     @JsonIgnoreProperties(value = "products", allowSetters=true)
     private Set<StudyLevel> studyLevels;
 
-    @JsonFilter("cost")
+    @JsonFilter("costs")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "product_cost", joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "cost_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "products", allowSetters=true)
-    private Set<Cost> cost;
+    private Set<Cost> costs;
 
     // Content
     @JsonFilter("requirements")
@@ -115,7 +115,7 @@ public class Product {
     }
 
     // To create a servie
-    public Product(String name, String summary, String imageUri, ProductType productType, Provider provider, Set<LifeCycle> lifeCycleStages, Set<Eligibility> eligibleGroups, Set<ServiceType> serviceTypes, Set<Cost> cost, Set<Requirement> requirements, Set<Feature> features, Set<Limitation> limitations, Set<Consideration> considerations, Set<Support> support, Set<Reference> references, Set<Contact> contacts) {
+    public Product(String name, String summary, String imageUri, ProductType productType, Provider provider, Set<LifeCycle> lifeCycleStages, Set<Eligibility> eligibleGroups, Set<ServiceType> serviceTypes, Set<Cost> costs, Set<Requirement> requirements, Set<Feature> features, Set<Limitation> limitations, Set<Consideration> considerations, Set<Support> support, Set<Reference> references, Set<Contact> contacts) {
         this.name = name;
         this.summary = summary;
         this.imageUri = imageUri;
@@ -124,7 +124,7 @@ public class Product {
         this.lifeCycleStages = lifeCycleStages;
         this.eligibleGroups = eligibleGroups;
         this.serviceTypes = serviceTypes;
-        this.cost = cost;
+        this.costs = costs;
         this.requirements = requirements;
         this.features = features;
         this.limitations = limitations;
@@ -135,7 +135,7 @@ public class Product {
     }
 
     //To create an educational resource
-    public Product(String name, String summary, String imageUri, ProductType productType, Provider provider, Set<LifeCycle> lifeCycleStages, Set<Eligibility> eligibleGroups, Set<ServiceType> programmes, Set<StudyLevel> studyLevels, Set<Cost> cost, Set<Contact> contacts) {
+    public Product(String name, String summary, String imageUri, ProductType productType, Provider provider, Set<LifeCycle> lifeCycleStages, Set<Eligibility> eligibleGroups, Set<Programme> programmes, Set<StudyLevel> studyLevels, Set<Cost> costs, Set<Contact> contacts) {
         this.name = name;
         this.summary = summary;
         this.imageUri = imageUri;
@@ -145,7 +145,7 @@ public class Product {
         this.eligibleGroups = eligibleGroups;
         this.programmes = programmes;
         this.studyLevels = studyLevels;
-        this.cost = cost;
+        this.costs = costs;
         this.contacts = contacts;
     }
 
@@ -221,11 +221,11 @@ public class Product {
         this.serviceTypes = serviceTypes;
     }
 
-    public Set<ServiceType> getProgrammes() {
+    public Set<Programme> getProgrammes() {
         return programmes;
     }
 
-    public void setProgrammes(Set<ServiceType> programmes) {
+    public void setProgrammes(Set<Programme> programmes) {
         this.programmes = programmes;
     }
 
@@ -237,12 +237,12 @@ public class Product {
         this.studyLevels = studyLevels;
     }
 
-    public Set<Cost> getCost() {
-        return cost;
+    public Set<Cost> getCosts() {
+        return costs;
     }
 
-    public void setCost(Set<Cost> cost) {
-        this.cost = cost;
+    public void setCosts(Set<Cost> costs) {
+        this.costs = costs;
     }
 
     public Set<Requirement> getRequirements() {

@@ -1,4 +1,4 @@
-package nz.ac.auckland.cer;
+package nz.ac.auckland;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
