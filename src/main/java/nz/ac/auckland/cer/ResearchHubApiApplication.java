@@ -144,7 +144,7 @@ public class ResearchHubApiApplication implements CommandLineRunner {
         }});
 
         // Create dummy products
-        Product figshare = new Product("figshare", "The University of Auckland hosts an institutional version of Figshare.", "", service, cer);
+        Product figshare = new Product("figshare", "The University of Auckland hosts an institutional version of Figshare.", "cat.jpg", service, cer);
         figshare.setEligibleGroups(new HashSet<Eligibility>() {{
             add(eligibleAcadStaff);
         }});
@@ -157,7 +157,7 @@ public class ResearchHubApiApplication implements CommandLineRunner {
             add(discover);
         }});
 
-        Product winterBootcamp = new Product("Winter Bootcamp", "Winter Bootcamp is a week long training and education event co-ordinated by the Center for eResearch where you can up-skill in a whole host of topics related to digital research practice.", "", education, cer);
+        Product winterBootcamp = new Product("Winter Bootcamp", "Winter Bootcamp is a week long training and education event co-ordinated by the Center for eResearch where you can up-skill in a whole host of topics related to digital research practice.", "cat.jpg", education, cer);
         winterBootcamp.setStudyLevels(new HashSet<StudyLevel>(){{
             add(studyAll);
         }});
