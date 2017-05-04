@@ -18,7 +18,7 @@ RUN             rm -f /apache-maven.tar.gz
 # Copies all files and maintains directory structure
 COPY            / /research-hub-api/
 
-# Build research hub with angular-cli
+# Build research hub api jar with Maven
 WORKDIR         /research-hub-api/
 RUN             mvn package
 RUN             mv target/app.jar /app.jar
