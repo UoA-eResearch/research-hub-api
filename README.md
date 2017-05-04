@@ -29,4 +29,5 @@ Tag target/generated-sources as a Sources Folder and target/generated-test-sourc
 
 ```
 docker build . -t research-hub-api
+docker run -p 8080:8080 -t research-hub-api
 ```
