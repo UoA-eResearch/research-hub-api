@@ -5,7 +5,7 @@ The Research Hub REST API.
 ## Requirements
 
 * Spring Boot
-* Maven
+* Maven `sudo apt install maven`
 * MySQL server 5.7
 * IntelliJ IDE (until I have time to write documentation on how to do this from the command line)
 
@@ -20,3 +20,13 @@ Create the database by executing `src/main/resources/db.sql` from the MySQL comm
 
 To run: right click on ResearchHubApiApplication > Run (or debug)
 
+
+File > Project structure > Modules > 
+
+Tag target/generated-sources as a Sources Folder and target/generated-test-sources as a Test Source Folder.
+
+## Deploy
+
+```
+docker build . -t research-hub-api
+```
