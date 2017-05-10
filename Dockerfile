@@ -23,4 +23,4 @@ WORKDIR         /research-hub-api/
 RUN             mvn package
 RUN             mv target/app.jar /app.jar
 
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar","--spring.config.location=file:/application.properties"]
