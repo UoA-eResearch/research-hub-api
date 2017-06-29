@@ -1,9 +1,5 @@
 package nz.ac.auckland.cer.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import nz.ac.auckland.cer.model.Content;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,48 +13,30 @@ import java.util.List;
 
 
 @RestController
-public class ContentController {
+public class ContentController extends AbstractController {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
     private ContentRepository contentRepository;
 
-    private static SimpleFilterProvider getProductsFilter()
-    {
-        SimpleFilterProvider filter = new SimpleFilterProvider();
-        filter.setFailOnUnknownId(false);
-        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("researchPhases", "externalUrls"));
-        return filter;
+    public ContentController() {
+        super();
     }
 
-    private static SimpleFilterProvider getDetailsFilter()
-    {
-        SimpleFilterProvider filter = new SimpleFilterProvider();
-        filter.setFailOnUnknownId(false);
-        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept());
-        return filter;
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/contentItems")
+    @RequestMapping(method = RequestMethod.GET, value = "/content")
     public ResponseEntity<String> getContentItems() {
         final List<Content> contentItems = contentRepository.findAll();
-        final SimpleFilterProvider filter = ContentController.getProductsFilter();
-        String result = "";
+        String results = this.getFilteredResults(contentItems, Content.ENTITY_NAME, "researchPhases", "externalUrls");
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
 
-        try
-        {
-            result = objectMapper.writer(filter).writeValueAsString(contentItems);
-        }
-        catch (JsonProcessingException e) {
-
-        }
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}")
+    public ResponseEntity<String> getContentItems(@PathVariable Integer id) {
+        final Content content = contentRepository.findOne(id);
+        String results = this.getFilteredResults(content, Content.ENTITY_NAME);
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
 //    @RequestMapping(method = RequestMethod.GET, value = "/query")
@@ -154,33 +132,4 @@ public class ContentController {
 //
 //        return new ResponseEntity<>(result, HttpStatus.OK);
 //    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/contentItems/{id}")
-    public ResponseEntity<String> getContentItems(@PathVariable Integer id) {
-        final Content product = contentRepository.findOne(id);
-        String contentTypeName = product.getContentType().getName().toLowerCase();
-        String result = "";
-
-        try
-        {
-            SimpleFilterProvider filter = new SimpleFilterProvider();
-            filter = ContentController.getDetailsFilter();
-//
-//            if(productTypeName.equals("service"))
-//            {
-//                filter = ProductController.getServiceFilter();
-//            }
-//            else if(productTypeName.equals("education"))
-//            {
-//                filter = ProductController.getEducationFilter();
-//            }
-
-            result = objectMapper.writer(filter).writeValueAsString(product);
-        }
-        catch (JsonProcessingException e) {
-            int i = 0;
-        }
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
-    }
 }
