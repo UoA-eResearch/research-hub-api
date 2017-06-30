@@ -20,6 +20,12 @@ CREATE TABLE `research_phase` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
+CREATE TABLE `role` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+
 
 -- Table structure for table `content`
 
@@ -39,6 +45,33 @@ CREATE TABLE `content` (
   KEY `fk_content_contenttypeid_idx` (`content_type_id`),
   CONSTRAINT `fk_content_contenttypeid` FOREIGN KEY (`content_type_id`) REFERENCES `content_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+
+
+-- Table structure for table `content`
+
+CREATE TABLE `person` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `first_name` TEXT DEFAULT NULL,
+  `last_name` TEXT DEFAULT NULL,
+  `email` TEXT DEFAULT NULL,
+  `directory_url` TEXT DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+
+CREATE TABLE `content_role` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `role_id` int(11) unsigned NOT NULL,
+  `content_id` int(11) unsigned NOT NULL,
+  `person_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY (`role_id`),
+  KEY (`content_id`),
+  KEY (`person_id`),
+  CONSTRAINT FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (`person_id`) REFERENCES `person` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 -- Table structure for many to one relationships
 
