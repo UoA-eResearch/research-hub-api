@@ -45,6 +45,12 @@ public class Content {
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
     private Set<ResearchPhase> researchPhases;
 
+    @JsonFilter("people")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
+    private Set<Person> people;
+
     // One to many
     @JsonFilter("externalUrls")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
@@ -169,5 +175,13 @@ public class Content {
 
     public void setExternalUrls(Set<ExternalUrl> externalUrls) {
         this.externalUrls = externalUrls;
+    }
+
+    public Set<Person> getPeople() {
+        return people;
+    }
+
+    public void setPeople(Set<Person> people) {
+        this.people = people;
     }
 }
