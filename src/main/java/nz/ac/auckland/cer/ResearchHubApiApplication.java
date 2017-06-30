@@ -1,8 +1,11 @@
 package nz.ac.auckland.cer;
 
 import nz.ac.auckland.cer.model.Content;
+import nz.ac.auckland.cer.model.ContentRole;
+import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.model.categories.*;
 import nz.ac.auckland.cer.repository.*;
+import org.hibernate.collection.internal.PersistentBag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,15 @@ public class ResearchHubApiApplication implements CommandLineRunner {
 
     @Autowired
     private ExternalUrlRepository externalUrlRepository;
+
+    @Autowired
+    private ContentRoleRepository contentRoleRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(ResearchHubApiApplication.class, args);
@@ -84,6 +96,34 @@ public class ResearchHubApiApplication implements CommandLineRunner {
 
         externalUrlRepository.save(new HashSet<ExternalUrl>(){{
             add(new ExternalUrl("Google", "google.com", figshare));
+        }});
+
+        Role slaver = new Role("Slaver");
+        Role slave = new Role("Slave");
+
+        roleRepository.save(new HashSet<Role>() {{
+            add(slaver);
+            add(slave);
+        }});
+
+        Person jack = new Person("Jack","Bauer","j@bauer.com","imdb.com");
+        Person john = new Person("John","Doe","j@doe.com","google.com");
+
+        personRepository.save(new HashSet<Person>() {{
+            add(jack);
+            add(john);
+        }});
+
+        ContentRole contentRoleA = new ContentRole(slaver, figshare, jack);
+        ContentRole contentRoleB = new ContentRole(slave, figshare, john);
+        ContentRole contentRoleC = new ContentRole(slaver, winterBootcamp, john);
+        ContentRole contentRoleD = new ContentRole(slave, winterBootcamp, jack);
+
+        contentRoleRepository.save(new HashSet<ContentRole>() {{
+            add(contentRoleA);
+            add(contentRoleB);
+            add(contentRoleC);
+            add(contentRoleD);
         }});
     }
 }
