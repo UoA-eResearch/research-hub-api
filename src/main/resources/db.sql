@@ -59,14 +59,13 @@ CREATE TABLE `person` (
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `content_role` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `role_id` int(11) unsigned NOT NULL,
-  `content_id` int(11) unsigned NOT NULL,
   `person_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
+  `content_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`role_id`,`person_id`),
   KEY (`role_id`),
-  KEY (`content_id`),
   KEY (`person_id`),
+  KEY (`content_id`),
   CONSTRAINT FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (`person_id`) REFERENCES `person` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
