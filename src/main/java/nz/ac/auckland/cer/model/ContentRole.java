@@ -2,7 +2,7 @@ package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import nz.ac.auckland.cer.model.categories.Role;
+import nz.ac.auckland.cer.model.categories.RoleType;
 
 import javax.persistence.*;
 
@@ -12,6 +12,10 @@ import javax.persistence.*;
 public class ContentRole {
 
     public static final String ENTITY_NAME = "ContentRole";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "content_id")
@@ -24,26 +28,34 @@ public class ContentRole {
     private Person person;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_type_id")
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
-    private Role role;
+    private RoleType roleType;
 
     public ContentRole() {
 
     }
 
-    public ContentRole(Content content, Person person, Role role) {
-        this.role = role;
+    public ContentRole(Content content, Person person, RoleType roleType) {
+        this.roleType = roleType;
         this.content = content;
         this.person = person;
     }
 
-    public Role getRole() {
-        return role;
+    public int getId() {
+        return id;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public RoleType getRoleType() {
+        return roleType;
+    }
+
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
     }
 
     public Content getContent() {

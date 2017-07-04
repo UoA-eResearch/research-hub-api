@@ -5,7 +5,6 @@ import nz.ac.auckland.cer.model.ContentRole;
 import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.model.categories.*;
 import nz.ac.auckland.cer.repository.*;
-import org.hibernate.collection.internal.PersistentBag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 
 @SpringBootApplication
@@ -40,7 +38,7 @@ public class ResearchHubApiApplication implements CommandLineRunner {
     private PersonRepository personRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleTypeRepository roleTypeRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(ResearchHubApiApplication.class, args);
@@ -98,10 +96,10 @@ public class ResearchHubApiApplication implements CommandLineRunner {
             add(new ExternalUrl("Google", "google.com", figshare));
         }});
 
-        Role slaver = new Role("Slaver");
-        Role slave = new Role("Slave");
+        RoleType slaver = new RoleType("Slaver");
+        RoleType slave = new RoleType("Slave");
 
-        roleRepository.save(new HashSet<Role>() {{
+        roleTypeRepository.save(new HashSet<RoleType>() {{
             add(slaver);
             add(slave);
         }});

@@ -20,7 +20,7 @@ CREATE TABLE `research_phase` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `role` (
+CREATE TABLE `role_type` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
@@ -59,16 +59,18 @@ CREATE TABLE `person` (
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `content_role` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `content_id` int(11) unsigned NOT NULL,
   `person_id` int(11) unsigned NOT NULL,
-  `role_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`content_id`,`person_id`),
+  `role_type_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
   KEY (`content_id`),
   KEY (`person_id`),
-  KEY (`role_id`),
-  CONSTRAINT FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  KEY (`role_type_id`),
+  UNIQUE KEY (`content_id`,`person_id`),
   CONSTRAINT FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT FOREIGN KEY (`person_id`) REFERENCES `person` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT FOREIGN KEY (`person_id`) REFERENCES `person` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT FOREIGN KEY (`role_type_id`) REFERENCES `role_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
