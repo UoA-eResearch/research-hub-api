@@ -13,15 +13,6 @@ public class ContentRole {
 
     public static final String ENTITY_NAME = "ContentRole";
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
-
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
-    private Role role;
-
     @ManyToOne
     @JoinColumn(name = "content_id")
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
@@ -32,22 +23,19 @@ public class ContentRole {
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Person person;
 
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
+    private Role role;
+
     public ContentRole() {
 
     }
 
-    public ContentRole(Role role, Content content, Person person) {
+    public ContentRole(Content content, Person person, Role role) {
         this.role = role;
         this.content = content;
         this.person = person;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public Role getRole() {

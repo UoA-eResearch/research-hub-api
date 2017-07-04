@@ -114,10 +114,10 @@ public class ResearchHubApiApplication implements CommandLineRunner {
             add(john);
         }});
 
-        ContentRole contentRoleA = new ContentRole(slaver, figshare, jack);
-        ContentRole contentRoleB = new ContentRole(slave, figshare, john);
-        ContentRole contentRoleC = new ContentRole(slaver, winterBootcamp, john);
-        ContentRole contentRoleD = new ContentRole(slave, winterBootcamp, jack);
+        ContentRole contentRoleA = new ContentRole(figshare, jack, slaver);
+        ContentRole contentRoleB = new ContentRole(figshare, john, slave);
+        ContentRole contentRoleC = new ContentRole(winterBootcamp, john, slaver);
+        ContentRole contentRoleD = new ContentRole(winterBootcamp, jack, slave);
 
         contentRoleRepository.save(new HashSet<ContentRole>() {{
             add(contentRoleA);
