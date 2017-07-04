@@ -5,10 +5,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.categories.ContentType;
 import nz.ac.auckland.cer.model.categories.ResearchPhase;
-import nz.ac.auckland.cer.model.categories.Role;
+import nz.ac.auckland.cer.model.categories.RoleType;
 import nz.ac.auckland.cer.repository.ResearchPhaseRepository;
 import nz.ac.auckland.cer.repository.ContentTypeRepository;
-import nz.ac.auckland.cer.repository.RoleRepository;
+import nz.ac.auckland.cer.repository.RoleTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +31,7 @@ public class CategoryController extends AbstractController {
     private ResearchPhaseRepository researchPhaseRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private RoleTypeRepository roleTypeRepository;
 
     public CategoryController() {
         super();
@@ -56,8 +56,8 @@ public class CategoryController extends AbstractController {
     @RequestMapping(method = RequestMethod.GET, value = "/category/roleType")
     @ApiOperation(value = "get all role types")
     public ResponseEntity<String> getRoleType() {
-        final List<Role> items = roleRepository.findAll();
-        String results = this.getFilteredResults(items, Role.ENTITY_NAME, "contentRoles");
+        final List<RoleType> items = roleTypeRepository.findAll();
+        String results = this.getFilteredResults(items, RoleType.ENTITY_NAME, "contentRoles");
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }

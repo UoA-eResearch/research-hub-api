@@ -8,19 +8,19 @@ import javax.persistence.OneToMany;
 import java.util.Set;
 
 @Entity
-@JsonFilter(Role.ENTITY_NAME)
-public class Role extends Category {
+@JsonFilter(RoleType.ENTITY_NAME)
+public class RoleType extends Category {
 
-    public static final String ENTITY_NAME = "Role";
+    public static final String ENTITY_NAME = "RoleType";
 
-    @OneToMany(mappedBy="role")
+    @OneToMany(mappedBy="roleType")
     private Set<ContentRole> contentRoles;
 
-    public Role() {
+    public RoleType() {
         super();
     }
 
-    public Role(String name) {
+    public RoleType(String name) {
         super(name);
     }
 
