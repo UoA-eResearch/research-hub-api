@@ -1,12 +1,11 @@
 package nz.ac.auckland.cer.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.Content;
+import nz.ac.auckland.cer.model.OrgUnit;
 import nz.ac.auckland.cer.repository.ContentRepository;
+import nz.ac.auckland.cer.repository.OrgUnitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,37 +18,36 @@ import javax.persistence.PersistenceContext;
 
 
 @RestController
-@Api(tags={"Content"}, description="Operations on content")
-public class ContentController extends AbstractController {
+@Api(tags={"OrgUnit"}, description="Operations on an organisational unit")
+public class OrgUnitController extends AbstractController {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    private ContentRepository contentRepository;
+    private OrgUnitRepository orgUnitRepository;
 
-    public ContentController() {
+    public OrgUnitController() {
         super();
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/content")
-    @ApiOperation(value = "get a list of content items")
+    @RequestMapping(method = RequestMethod.GET, value = "/orgUnit")
+    @ApiOperation(value = "get a list of org units")
     public ResponseEntity<String> getContent(@RequestParam Integer page, @RequestParam Integer size) {
         // Make sure pages greater than 0 and page sizes less than 50
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        final Page<Content> items = contentRepository.findAll(new PageRequest(page, size));
-        String results = this.getFilteredResults(items, Content.ENTITY_NAME,"webpages",
-                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people");
+        final Page<OrgUnit> items = orgUnitRepository.findAll(new PageRequest(page, size));
+        String results = this.getFilteredResults(items, OrgUnit.ENTITY_NAME, "people", "contentItems");
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}")
-    @ApiOperation(value = "get a specific content item")
+    @RequestMapping(method = RequestMethod.GET, value = "/orgUnit/{id}")
+    @ApiOperation(value = "get a specific organisation unit")
     public ResponseEntity<String> getContent(@PathVariable Integer id) {
-        final Content item = contentRepository.findOne(id);
-        String results = this.getFilteredResults(item, Content.ENTITY_NAME);
+        final OrgUnit item = orgUnitRepository.findOne(id);
+        String results = this.getFilteredResults(item, OrgUnit.ENTITY_NAME);
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }

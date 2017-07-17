@@ -3,9 +3,11 @@ package nz.ac.auckland.cer.controllers;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import nz.ac.auckland.cer.model.categories.ContentType;
-import nz.ac.auckland.cer.model.categories.ResearchPhase;
-import nz.ac.auckland.cer.model.categories.RoleType;
+import nz.ac.auckland.cer.model.ContentSubtype;
+import nz.ac.auckland.cer.model.ContentType;
+import nz.ac.auckland.cer.model.ResearchPhase;
+import nz.ac.auckland.cer.model.RoleType;
+import nz.ac.auckland.cer.repository.ContentSubtypeRepository;
 import nz.ac.auckland.cer.repository.ResearchPhaseRepository;
 import nz.ac.auckland.cer.repository.ContentTypeRepository;
 import nz.ac.auckland.cer.repository.RoleTypeRepository;
@@ -28,6 +30,9 @@ public class CategoryController extends AbstractController {
     private ContentTypeRepository contentTypeRepository;
 
     @Autowired
+    private ContentSubtypeRepository contentSubtypeRepository;
+
+    @Autowired
     private ResearchPhaseRepository researchPhaseRepository;
 
     @Autowired
@@ -42,6 +47,14 @@ public class CategoryController extends AbstractController {
     public ResponseEntity<String> getContentType() {
         final List<ContentType> items = contentTypeRepository.findAll();
         String results = this.getFilteredResults(items, ContentType.ENTITY_NAME, "contentItems");
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/category/contentSubtype")
+    @ApiOperation(value = "get all content subtypes")
+    public ResponseEntity<String> getContentSubtype() {
+        final List<ContentSubtype> items = contentSubtypeRepository.findAll();
+        String results = this.getFilteredResults(items, ContentSubtype.ENTITY_NAME, "contentItems");
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 

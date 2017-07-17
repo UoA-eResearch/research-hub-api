@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class AbstractController {
 
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     public AbstractController() {
 
@@ -29,7 +29,7 @@ public abstract class AbstractController {
             result = objectMapper.writer(filter).writeValueAsString(rawResults);
         }
         catch (JsonProcessingException e) {
-
+            int x = 1;
         }
 
         return result;

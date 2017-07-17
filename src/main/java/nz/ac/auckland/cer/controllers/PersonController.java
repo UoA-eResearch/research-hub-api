@@ -37,7 +37,8 @@ public class PersonController extends AbstractController {
         size = size > 50 ? 50 : size;
 
         final Page<Person> items = personRepository.findAll(new PageRequest(page, size));
-        String results = this.getFilteredResults(items, Person.ENTITY_NAME, "contentRoles");
+        String results = this.getFilteredResults(items, Person.ENTITY_NAME, "orgUnits",
+                "contentRoles");
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
