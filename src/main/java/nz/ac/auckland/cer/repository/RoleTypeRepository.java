@@ -1,6 +1,6 @@
 package nz.ac.auckland.cer.repository;
 
-import nz.ac.auckland.cer.model.categories.RoleType;
+import nz.ac.auckland.cer.model.RoleType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

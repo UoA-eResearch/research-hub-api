@@ -1,4 +1,4 @@
-package nz.ac.auckland.cer.model.categories;
+package nz.ac.auckland.cer.model;
 
 import javax.persistence.*;
 

@@ -2,6 +2,7 @@ package nz.ac.auckland.cer.model;
 
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.persistence.*;
@@ -16,26 +17,29 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
+    private String title;
     private String firstName;
     private String lastName;
     private String email;
+    private String username;
+    private String jobTitle;
     private String directoryUrl;
+    private String image;
+
+    @JsonFilter("orgUnits")
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "person_org_unit", joinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "org_unit_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = {"people", "contentItems"}, allowSetters = true)
+    private Set<OrgUnit> orgUnits;
 
     // One to many
     @JsonFilter("contentRoles")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "person")
-    @JsonIgnoreProperties(value = "person", allowSetters=true)
+    @JsonIgnore
     private Set<ContentRole> contentRoles;
 
     public Person() {
 
-    }
-
-    public Person(String firstName, String lastName, String email, String directoryUrl) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.directoryUrl = directoryUrl;
     }
 
     public int getId() {
@@ -44,6 +48,14 @@ public class Person {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getFirstName() {
@@ -70,12 +82,44 @@ public class Person {
         this.email = email;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getJobTitle() {
+        return jobTitle;
+    }
+
+    public void setJobTitle(String jobTitle) {
+        this.jobTitle = jobTitle;
+    }
+
     public String getDirectoryUrl() {
         return directoryUrl;
     }
 
     public void setDirectoryUrl(String directoryUrl) {
         this.directoryUrl = directoryUrl;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Set<OrgUnit> getOrgUnits() {
+        return orgUnits;
+    }
+
+    public void setOrgUnits(Set<OrgUnit> orgUnits) {
+        this.orgUnits = orgUnits;
     }
 
     public Set<ContentRole> getContentRoles() {

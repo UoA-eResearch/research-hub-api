@@ -2,7 +2,6 @@ package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import nz.ac.auckland.cer.model.categories.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -17,11 +16,12 @@ public class Content {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
 
-    private String title;
+    private String name;
     private String summary;
     private String description;
     private String actionableInfo;
     private String additionalInfo;
+    private String callToAction;
     private String image;
 
     @Column(name = "created", insertable = false, updatable = false) // Makes sure that the database updates the value automatically
@@ -32,13 +32,36 @@ public class Content {
 
     private LocalDateTime audited;
 
-    // Many to one
-    @ManyToOne
-    @JoinColumn(name = "content_type_id")
-    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
-    private ContentType contentType;
+    // One to many
+    @JsonFilter("webpages")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
+    @JsonIgnoreProperties(value = "content", allowSetters=true)
+    private Set<Webpage> webpages;
+
+    @JsonFilter("keywords")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
+    @JsonIgnoreProperties(value = "content", allowSetters=true)
+    private Set<Keyword> keywords;
 
     //Many to many
+    @JsonFilter("contentTypes")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_content_type", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_type_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private Set<ContentType> contentTypes;
+
+    @JsonFilter("contentSubtypes")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_content_subtype", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_subtype_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private Set<ContentType> contentSubtypes;
+
+    @JsonFilter("orgUnits")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_org_unit", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "org_unit_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private Set<OrgUnit> orgUnits;
+
     @JsonFilter("researchPhases")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_research_phase", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "research_phase_id", referencedColumnName = "id"))
@@ -47,30 +70,14 @@ public class Content {
 
     @JsonFilter("people")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "id", referencedColumnName = "id"))
+    @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Set<Person> people;
-
-    // One to many
-    @JsonFilter("externalUrls")
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
-    @JsonIgnoreProperties(value = "content", allowSetters=true)
-    private Set<ExternalUrl> externalUrls;
 
 
     public Content()
     {
 
-    }
-
-    public Content(ContentType contentType, String title, String summary, String description, String actionableInfo, String additionalInfo, String image) {
-        this.contentType = contentType;
-        this.title = title;
-        this.summary = summary;
-        this.description = description;
-        this.actionableInfo = actionableInfo;
-        this.additionalInfo = additionalInfo;
-        this.image = image;
     }
 
     public int getId() {
@@ -81,12 +88,12 @@ public class Content {
         this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getSummary() {
@@ -129,6 +136,14 @@ public class Content {
         this.image = image;
     }
 
+    public String getCallToAction() {
+        return callToAction;
+    }
+
+    public void setCallToAction(String callToAction) {
+        this.callToAction = callToAction;
+    }
+
     public LocalDateTime getCreated() {
         return created;
     }
@@ -153,12 +168,44 @@ public class Content {
         this.audited = audited;
     }
 
-    public ContentType getContentType() {
-        return contentType;
+    public Set<Webpage> getWebpages() {
+        return webpages;
     }
 
-    public void setContentType(ContentType contentType) {
-        this.contentType = contentType;
+    public void setWebpages(Set<Webpage> webpages) {
+        this.webpages = webpages;
+    }
+
+    public Set<Keyword> getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(Set<Keyword> keywords) {
+        this.keywords = keywords;
+    }
+
+    public Set<ContentType> getContentTypes() {
+        return contentTypes;
+    }
+
+    public void setContentTypes(Set<ContentType> contentTypes) {
+        this.contentTypes = contentTypes;
+    }
+
+    public Set<ContentType> getContentSubtypes() {
+        return contentSubtypes;
+    }
+
+    public void setContentSubtypes(Set<ContentType> contentSubtypes) {
+        this.contentSubtypes = contentSubtypes;
+    }
+
+    public Set<OrgUnit> getOrgUnits() {
+        return orgUnits;
+    }
+
+    public void setOrgUnits(Set<OrgUnit> orgUnits) {
+        this.orgUnits = orgUnits;
     }
 
     public Set<ResearchPhase> getResearchPhases() {
@@ -169,14 +216,6 @@ public class Content {
         this.researchPhases = researchPhases;
     }
 
-    public Set<ExternalUrl> getExternalUrls() {
-        return externalUrls;
-    }
-
-    public void setExternalUrls(Set<ExternalUrl> externalUrls) {
-        this.externalUrls = externalUrls;
-    }
-
     public Set<Person> getPeople() {
         return people;
     }
@@ -184,4 +223,6 @@ public class Content {
     public void setPeople(Set<Person> people) {
         this.people = people;
     }
+
+
 }

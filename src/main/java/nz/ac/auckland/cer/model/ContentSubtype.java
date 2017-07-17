@@ -1,26 +1,26 @@
-package nz.ac.auckland.cer.model.categories;
+package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import nz.ac.auckland.cer.model.Content;
 
 import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import java.util.Set;
 
+
 @Entity
-@JsonFilter(ContentType.ENTITY_NAME)
-public class ContentType extends Category {
+@JsonFilter(ContentSubtype.ENTITY_NAME)
+public class ContentSubtype extends Category {
 
-    public static final String ENTITY_NAME = "ContentType";
+    public static final String ENTITY_NAME = "ContentSubtype";
 
-    @OneToMany(mappedBy="contentType")
+    @ManyToMany(mappedBy = "contentSubtypes")
     private Set<Content> contentItems;
 
-    public ContentType() {
+    public ContentSubtype() {
         super();
     }
 
-    public ContentType(String name) {
+    public ContentSubtype(String name) {
         super(name);
     }
 

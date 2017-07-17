@@ -1,7 +1,6 @@
-package nz.ac.auckland.cer.model.categories;
+package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import nz.ac.auckland.cer.model.Content;
 
 import javax.persistence.*;
 import java.util.Set;
