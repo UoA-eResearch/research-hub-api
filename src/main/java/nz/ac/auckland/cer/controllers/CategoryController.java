@@ -14,6 +14,7 @@ import nz.ac.auckland.cer.repository.RoleTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,7 @@ public class CategoryController extends AbstractController {
         super();
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/contentType")
     @ApiOperation(value = "get all content types")
     public ResponseEntity<String> getContentType() {
@@ -50,6 +52,7 @@ public class CategoryController extends AbstractController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/contentSubtype")
     @ApiOperation(value = "get all content subtypes")
     public ResponseEntity<String> getContentSubtype() {
@@ -58,6 +61,7 @@ public class CategoryController extends AbstractController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/researchPhase")
     @ApiOperation(value = "get all research phases")
     public ResponseEntity<String> getResearchPhase() {
@@ -66,6 +70,7 @@ public class CategoryController extends AbstractController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/roleType")
     @ApiOperation(value = "get all role types")
     public ResponseEntity<String> getRoleType() {

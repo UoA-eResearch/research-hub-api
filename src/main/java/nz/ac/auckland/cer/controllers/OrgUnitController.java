@@ -31,6 +31,7 @@ public class OrgUnitController extends AbstractController {
         super();
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit")
     @ApiOperation(value = "get a list of org units")
     public ResponseEntity<String> getContent(@RequestParam Integer page, @RequestParam Integer size) {
@@ -43,6 +44,7 @@ public class OrgUnitController extends AbstractController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit/{id}")
     @ApiOperation(value = "get a specific organisation unit")
     public ResponseEntity<String> getContent(@PathVariable Integer id) {

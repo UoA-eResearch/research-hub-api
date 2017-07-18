@@ -29,6 +29,7 @@ public class PersonController extends AbstractController {
         super();
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person")
     @ApiOperation(value = "get a list of people")
     public ResponseEntity<String> getPerson(@RequestParam Integer page, @RequestParam Integer size) {
@@ -42,6 +43,7 @@ public class PersonController extends AbstractController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person/{id}")
     @ApiOperation(value = "get a specific person")
     public ResponseEntity<String> getPerson(@PathVariable Integer id) {
