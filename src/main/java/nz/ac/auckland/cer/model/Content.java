@@ -54,7 +54,7 @@ public class Content {
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_content_subtype", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_subtype_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
-    private Set<ContentType> contentSubtypes;
+    private Set<ContentSubtype> contentSubtypes;
 
     @JsonFilter("orgUnits")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -192,11 +192,11 @@ public class Content {
         this.contentTypes = contentTypes;
     }
 
-    public Set<ContentType> getContentSubtypes() {
+    public Set<ContentSubtype> getContentSubtypes() {
         return contentSubtypes;
     }
 
-    public void setContentSubtypes(Set<ContentType> contentSubtypes) {
+    public void setContentSubtypes(Set<ContentSubtype> contentSubtypes) {
         this.contentSubtypes = contentSubtypes;
     }
 
