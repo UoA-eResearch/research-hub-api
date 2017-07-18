@@ -42,6 +42,10 @@ public class Person {
 
     }
 
+    public Person(Integer id) {
+        this.id = id;
+    }
+
     public int getId() {
         return id;
     }

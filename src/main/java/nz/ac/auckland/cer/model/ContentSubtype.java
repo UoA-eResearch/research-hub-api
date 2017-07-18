@@ -20,6 +20,10 @@ public class ContentSubtype extends Category {
         super();
     }
 
+    public ContentSubtype(Integer id) {
+        super(id);
+    }
+
     public ContentSubtype(String name) {
         super(name);
     }

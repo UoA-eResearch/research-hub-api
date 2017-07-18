@@ -19,6 +19,10 @@ public class ResearchPhase extends Category {
         super();
     }
 
+    public ResearchPhase(Integer id) {
+        super(id);
+    }
+
     public ResearchPhase(String name) {
         super(name);
     }

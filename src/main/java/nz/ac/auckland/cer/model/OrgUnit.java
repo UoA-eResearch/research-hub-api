@@ -31,6 +31,10 @@ public class OrgUnit {
     public OrgUnit() {
     }
 
+    public OrgUnit(Integer id) {
+        this.id = id;
+    }
+
     public int getId() {
         return id;
     }
