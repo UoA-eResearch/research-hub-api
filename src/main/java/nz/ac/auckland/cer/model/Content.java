@@ -70,7 +70,7 @@ public class Content {
 
     @JsonFilter("people")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "id", referencedColumnName = "id"))
+    @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Set<Person> people;
 
