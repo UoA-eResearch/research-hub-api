@@ -145,15 +145,10 @@ CREATE TABLE `person_org_unit` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `person_content_role` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `person_id` int(11) unsigned NOT NULL,
   `content_id` int(11) unsigned NOT NULL,
   `role_type_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY (`person_id`),
-  KEY (`content_id`),
-  KEY (`role_type_id`),
-  UNIQUE KEY (`person_id`, `content_id`, `role_type_id`),
+  PRIMARY KEY (`person_id`, `content_id`, `role_type_id`),
   CONSTRAINT FOREIGN KEY (`person_id`) REFERENCES `person` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (`role_type_id`) REFERENCES `role_type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
