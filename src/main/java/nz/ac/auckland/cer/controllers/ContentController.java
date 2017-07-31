@@ -43,9 +43,6 @@ public class ContentController extends AbstractController {
                                              @RequestParam Integer size,
                                              @RequestParam(required = false) Integer[] contentTypes,
                                              @RequestParam(required = false) Integer[] contentSubtypes,
-                                             @RequestParam(required = false) Integer[] orgUnits,
-                                             @RequestParam(required = false) Integer[] researchPhases,
-                                             @RequestParam(required = false) Integer[] people,
                                              @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes less than 50
@@ -56,6 +53,8 @@ public class ContentController extends AbstractController {
         JPQLQuery<Content> queryFactory = new HibernateQuery<>(session);
         QContent qContent = QContent.content;
         QKeyword qKeyword = QKeyword.keyword1;
+        QPerson qPerson = QPerson.person;
+        QOrgUnit qOrgUnit = QOrgUnit.orgUnit;
 
         BooleanBuilder builder = new BooleanBuilder();
 
@@ -83,42 +82,6 @@ public class ContentController extends AbstractController {
             builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
         }
 
-        if(orgUnits != null)
-        {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-
-            for(Integer id : orgUnits)
-            {
-                predicates.add(qContent.orgUnits.contains(new OrgUnit(id)));
-            }
-
-            builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
-        }
-
-        if(researchPhases != null)
-        {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-
-            for(Integer id : researchPhases)
-            {
-                predicates.add(qContent.researchPhases.contains(new ResearchPhase(id)));
-            }
-
-            builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
-        }
-
-        if(people != null)
-        {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-
-            for(Integer id : people)
-            {
-                predicates.add(qContent.people.contains(new Person(id)));
-            }
-
-            builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
-        }
-
         if(searchText != null)
         {
             String searchTextLower = searchText.toLowerCase().trim();
@@ -132,7 +95,13 @@ public class ContentController extends AbstractController {
                     qContent.actionableInfo.toLowerCase().contains(searchTextLower),
                     qContent.additionalInfo.toLowerCase().contains(searchTextLower),
                     qContent.keywords.contains(JPAExpressions.selectFrom(qKeyword).
-                                        where(qKeyword.keyword.toLowerCase().contains(searchTextLower)))
+                                        where(qKeyword.keyword.toLowerCase().contains(searchTextLower))),
+                    qContent.people.contains(JPAExpressions.selectFrom(qPerson).
+                            where(qPerson.firstName.toLowerCase().contains(searchTextLower))),
+                    qContent.people.contains(JPAExpressions.selectFrom(qPerson).
+                            where(qPerson.lastName.toLowerCase().contains(searchTextLower))),
+                    qContent.orgUnits.contains(JPAExpressions.selectFrom(qOrgUnit).
+                            where(qOrgUnit.name.toLowerCase().contains(searchTextLower)))
                 );
             }
         }
