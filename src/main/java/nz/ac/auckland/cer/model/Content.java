@@ -62,6 +62,12 @@ public class Content {
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
     private Set<ContentSubtype> contentSubtypes;
 
+    @JsonFilter("similarContentItems")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_to_content", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "similar_content_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private Set<Content> similarContentItems;
+
     @JsonFilter("orgUnits")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_org_unit", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "org_unit_id", referencedColumnName = "id"))
@@ -79,9 +85,6 @@ public class Content {
     @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Set<Person> people;
-
-
-
 
     public Content()
     {
@@ -238,5 +241,13 @@ public class Content {
 
     public void setPolicies(Set<Policy> policies) {
         this.policies = policies;
+    }
+
+    public Set<Content> getSimilarContentItems() {
+        return similarContentItems;
+    }
+
+    public void setSimilarContentItems(Set<Content> similarContentItems) {
+        this.similarContentItems = similarContentItems;
     }
 }

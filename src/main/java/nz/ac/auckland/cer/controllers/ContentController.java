@@ -125,7 +125,8 @@ public class ContentController extends AbstractController {
         hubPage.number = page;
 
         String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME,"webpages",
-                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people");
+                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
+                "additionalInfo", "callToAction", "description");
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -135,7 +136,19 @@ public class ContentController extends AbstractController {
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
-        String results = this.getFilteredResults(item, Content.ENTITY_NAME);
+        String results = this.getFilteredResults(item, Content.ENTITY_NAME, "similarContentItems");
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/similarContent/{id}")
+    @ApiOperation(value = "get a specific content item")
+    public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
+        final Content item = contentRepository.findOne(id);
+        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, "webpages",
+                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
+                "additionalInfo", "callToAction", "description");
+
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }
