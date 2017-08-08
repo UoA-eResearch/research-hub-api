@@ -50,6 +50,12 @@ public class Content {
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
     private Set<ContentType> contentTypes;
 
+    @JsonFilter("policies")
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(name = "content_policy", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "policy_id", referencedColumnName = "id"))
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private Set<Policy> policies;
+
     @JsonFilter("contentSubtypes")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_content_subtype", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_subtype_id", referencedColumnName = "id"))
@@ -73,6 +79,8 @@ public class Content {
     @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Set<Person> people;
+
+
 
 
     public Content()
@@ -224,5 +232,11 @@ public class Content {
         this.people = people;
     }
 
+    public Set<Policy> getPolicies() {
+        return policies;
+    }
 
+    public void setPolicies(Set<Policy> policies) {
+        this.policies = policies;
+    }
 }
