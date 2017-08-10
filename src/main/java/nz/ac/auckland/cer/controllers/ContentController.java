@@ -42,7 +42,6 @@ public class ContentController extends AbstractController {
     public ResponseEntity<String> getContent(@RequestParam Integer page,
                                              @RequestParam Integer size,
                                              @RequestParam(required = false) Integer[] contentTypes,
-                                             @RequestParam(required = false) Integer[] contentSubtypes,
                                              @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes less than 50
@@ -65,18 +64,6 @@ public class ContentController extends AbstractController {
             for(Integer id : contentTypes)
             {
                 predicates.add(qContent.contentTypes.contains(new ContentType(id)));
-            }
-
-            builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
-        }
-
-        if(contentSubtypes != null)
-        {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-
-            for(Integer id : contentSubtypes)
-            {
-                predicates.add(qContent.contentSubtypes.contains(new ContentSubtype(id)));
             }
 
             builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
@@ -125,7 +112,7 @@ public class ContentController extends AbstractController {
         hubPage.number = page;
 
         String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME,"webpages",
-                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
+                "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
                 "additionalInfo", "callToAction", "description");
 
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -146,7 +133,7 @@ public class ContentController extends AbstractController {
     public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
         String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, "webpages",
-                "keywords", "contentTypes", "contentSubtypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
+                "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
                 "additionalInfo", "callToAction", "description");
 
         return new ResponseEntity<>(results, HttpStatus.OK);
