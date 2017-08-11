@@ -1,9 +1,13 @@
 package nz.ac.auckland.cer.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.Content;
 import nz.ac.auckland.cer.model.OrgUnit;
+import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.repository.OrgUnitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +53,23 @@ public class OrgUnitController extends AbstractController {
     @ApiOperation(value = "get a specific organisation unit")
     public ResponseEntity<String> getContent(@PathVariable Integer id) {
         final OrgUnit item = orgUnitRepository.findOne(id);
-        String results = this.getFilteredResults(item, OrgUnit.ENTITY_NAME);
+
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+        filter.addFilter(OrgUnit.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept());
+        filter.addFilter(Person.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("email", "username", "directoryUrl", "orgUnits", "contentRoles"));
+        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
+
+        String results = "";
+
+        try
+        {
+            results = objectMapper.writer(filter).writeValueAsString(item);
+        }
+        catch (JsonProcessingException e) {
+
+        }
+
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }

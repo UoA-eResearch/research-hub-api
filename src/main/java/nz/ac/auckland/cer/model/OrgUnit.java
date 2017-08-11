@@ -25,7 +25,7 @@ public class OrgUnit {
     private Set<Person> people;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "orgUnits")
-    @JsonIgnore
+    @JsonIgnoreProperties(value = {"similarContentItems"}, allowSetters = true)
     private Set<Content> contentItems;
 
     public OrgUnit() {
