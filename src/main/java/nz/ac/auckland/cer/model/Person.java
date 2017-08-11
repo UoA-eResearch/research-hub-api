@@ -35,7 +35,7 @@ public class Person {
     // One to many
     @JsonFilter("contentRoles")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "person")
-    @JsonIgnore
+    @JsonIgnoreProperties(value = {"person"}, allowSetters = true)
     private Set<ContentRole> contentRoles;
 
     public Person() {

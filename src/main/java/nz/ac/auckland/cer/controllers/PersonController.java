@@ -1,10 +1,14 @@
 package nz.ac.auckland.cer.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import nz.ac.auckland.cer.model.Content;
 import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.model.QPerson;
 import nz.ac.auckland.cer.repository.PersonRepository;
@@ -89,7 +93,22 @@ public class PersonController extends AbstractController {
     @ApiOperation(value = "get a specific person")
     public ResponseEntity<String> getPerson(@PathVariable Integer id) {
         final Person item = personRepository.findOne(id);
-        String results = this.getFilteredResults(item, Person.ENTITY_NAME);
+
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+        filter.addFilter(Person.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept());
+        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
+
+        String results = "";
+
+        try
+        {
+            results = objectMapper.writer(filter).writeValueAsString(item);
+        }
+        catch (JsonProcessingException e) {
+
+        }
+
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }
