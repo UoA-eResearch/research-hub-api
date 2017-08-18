@@ -1,5 +1,8 @@
 package nz.ac.auckland.cer.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.jpa.JPAExpressions;
@@ -10,6 +13,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
+import nz.ac.auckland.cer.repository.GuideCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +35,9 @@ public class ContentController extends AbstractController {
 
     @Autowired
     private ContentRepository contentRepository;
+
+    @Autowired
+    private GuideCategoryRepository guideCategoryRepository;
 
     public ContentController() {
         super();
@@ -123,7 +130,58 @@ public class ContentController extends AbstractController {
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
-        String results = this.getFilteredResults(item, Content.ENTITY_NAME, "similarContentItems");
+
+        String results = "";
+        boolean isGuide = false;
+
+        for(ContentType contentType: item.getContentTypes()) {
+            if(contentType.getId() == 7) {
+                isGuide = true;
+                break;
+            }
+        }
+
+        if(isGuide) {
+            SimpleFilterProvider filter = new SimpleFilterProvider();
+            filter.setFailOnUnknownId(false);
+            filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("webpages",
+                    "keywords", "contentTypes", "researchPhases", "policies", "similarContentItems",
+                    "actionableInfo", "callToAction", "orgUnits", "people"));
+            filter.addFilter("guideCategories", SimpleBeanPropertyFilter.serializeAllExcept("contentItems"));
+
+            try
+            {
+                results = objectMapper.writer(filter).writeValueAsString(item);
+            }
+            catch (JsonProcessingException e) {
+
+            }
+        } else {
+            results = this.getFilteredResults(item, Content.ENTITY_NAME, "similarContentItems", "guideCategories");
+        }
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/guideCategory/{id}")
+    @ApiOperation(value = "get a specific guide")
+    public ResponseEntity<String> getGuide(@PathVariable Integer id) {
+        final GuideCategory item = guideCategoryRepository.findOne(id);
+
+        String results = "";
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+        filter.addFilter(GuideCategory.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("content"));
+        filter.addFilter("contentItems", SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
+
+        try
+        {
+            results = objectMapper.writer(filter).writeValueAsString(item);
+        }
+        catch (JsonProcessingException e) {
+
+        }
+
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
@@ -134,7 +192,7 @@ public class ContentController extends AbstractController {
         final Content item = contentRepository.findOne(id);
         String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, "webpages",
                 "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
-                "additionalInfo", "callToAction", "description");
+                "additionalInfo", "callToAction", "description", "guideCategories");
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }

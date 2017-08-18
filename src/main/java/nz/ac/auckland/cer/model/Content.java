@@ -13,7 +13,7 @@ public class Content {
     public static final String ENTITY_NAME = "Content";
     public static final String[] DETAILS = new String[] {
             "webpages", "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies",
-            "similarContentItems", "actionableInfo", "additionalInfo", "callToAction", "description"
+            "similarContentItems", "actionableInfo", "additionalInfo", "callToAction", "description", "guideCategories"
     };
 
     @Id
@@ -83,6 +83,12 @@ public class Content {
     @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
     private Set<Person> people;
+
+    // Guides
+    @JsonFilter("guideCategories")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
+    @JsonIgnoreProperties(value = {"content"}, allowSetters = true)
+    private Set<GuideCategory> guideCategories;
 
     public Content()
     {
@@ -239,5 +245,13 @@ public class Content {
 
     public void setSimilarContentItems(Set<Content> similarContentItems) {
         this.similarContentItems = similarContentItems;
+    }
+
+    public Set<GuideCategory> getGuideCategories() {
+        return guideCategories;
+    }
+
+    public void setGuideCategories(Set<GuideCategory> guideCategories) {
+        this.guideCategories = guideCategories;
     }
 }
