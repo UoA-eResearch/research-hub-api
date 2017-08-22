@@ -19,6 +19,10 @@ public class RoleType extends Category {
         super();
     }
 
+    public RoleType(int id) {
+        super(id);
+    }
+
     public RoleType(String name) {
         super(name);
     }

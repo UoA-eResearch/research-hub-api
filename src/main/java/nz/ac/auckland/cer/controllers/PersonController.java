@@ -8,9 +8,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import nz.ac.auckland.cer.model.Content;
-import nz.ac.auckland.cer.model.Person;
-import nz.ac.auckland.cer.model.QPerson;
+import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.PersonRepository;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +50,7 @@ public class PersonController extends AbstractController {
         QPerson qPerson = QPerson.person;
 
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qPerson.contentRoles.any().roleType.eq(new RoleType(3))); // Only get user support people
 
         if (searchText != null) {
             String searchTextLower = searchText.toLowerCase().trim();
