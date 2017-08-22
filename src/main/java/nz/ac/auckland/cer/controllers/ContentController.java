@@ -78,25 +78,26 @@ public class ContentController extends AbstractController {
 
         if(searchText != null)
         {
-            String searchTextLower = searchText.toLowerCase().trim();
+            String searchTextTrimmed = searchText.trim();
 
-            if(!searchTextLower.equals("")) {
-                builder.andAnyOf(
-                    qContent.name.toLowerCase().contains(searchTextLower),
-                    qContent.summary.toLowerCase().contains(searchTextLower),
-                    qContent.description.toLowerCase().contains(searchTextLower),
-                    qContent.description.toLowerCase().contains(searchTextLower),
-                    qContent.actionableInfo.toLowerCase().contains(searchTextLower),
-                    qContent.additionalInfo.toLowerCase().contains(searchTextLower),
-                    qContent.keywords.contains(JPAExpressions.selectFrom(qKeyword).
-                                        where(qKeyword.keyword.toLowerCase().contains(searchTextLower))),
-                    qContent.people.contains(JPAExpressions.selectFrom(qPerson).
-                            where(qPerson.firstName.toLowerCase().contains(searchTextLower))),
-                    qContent.people.contains(JPAExpressions.selectFrom(qPerson).
-                            where(qPerson.lastName.toLowerCase().contains(searchTextLower))),
-                    qContent.orgUnits.contains(JPAExpressions.selectFrom(qOrgUnit).
-                            where(qOrgUnit.name.toLowerCase().contains(searchTextLower)))
-                );
+            if(!searchTextTrimmed.equals("")) {
+                String[] tokens = searchTextTrimmed.split(" ");
+                BooleanBuilder searchTokenBuilder = new BooleanBuilder();
+
+                for(String token: tokens) {
+                    searchTokenBuilder.or(qContent.name.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.summary.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.description.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.description.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.actionableInfo.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.additionalInfo.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.keywords.any().keyword.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.people.any().firstName.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.people.any().lastName.containsIgnoreCase(token));
+                    searchTokenBuilder.or(qContent.orgUnits.any().name.containsIgnoreCase(token));
+                }
+
+                builder.and(searchTokenBuilder);
             }
         }
 
