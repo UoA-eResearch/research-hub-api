@@ -3,13 +3,15 @@ package nz.ac.auckland.cer.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.hibernate.HibernateQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import nz.ac.auckland.cer.model.Content;
-import nz.ac.auckland.cer.model.OrgUnit;
-import nz.ac.auckland.cer.model.Person;
+import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.repository.OrgUnitRepository;
+import nz.ac.auckland.cer.repository.PersonRepository;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
 
 
 @RestController
@@ -30,6 +33,9 @@ public class OrgUnitController extends AbstractController {
 
     @Autowired
     private OrgUnitRepository orgUnitRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
 
     public OrgUnitController() {
         super();
@@ -71,5 +77,18 @@ public class OrgUnitController extends AbstractController {
         }
 
         return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/orgUnit/{id}/userSupport")
+    @ApiOperation(value = "get support people associated with an organisational unit")
+    public ResponseEntity<String> getPeople(@PathVariable Integer id) {
+//
+//        SELECT *
+//        FROM person_content_role
+//        INNER JOIN person_org_unit ON person_content_role.person_id=person_org_unit.person_id
+//        WHERE person_content_role.role_type_id=3;
+
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 }

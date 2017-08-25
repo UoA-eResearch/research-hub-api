@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.List;
 
 
 @RestController
@@ -81,8 +82,7 @@ public class PersonController extends AbstractController {
         hubPage.size = size;
         hubPage.number = page;
 
-        String result = this.getFilteredResults(hubPage, Person.ENTITY_NAME, "orgUnits",
-                "contentRoles");
+        String result = this.getFilteredResults(hubPage, Person.ENTITY_NAME, Person.DETAILS);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -109,5 +109,23 @@ public class PersonController extends AbstractController {
         }
 
         return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/person/{id}/userSupportContent")
+    @ApiOperation(value = "get support people associated with a content")
+    public ResponseEntity<String> getPeople(@PathVariable Integer id) {
+        Session session = entityManager.unwrap(Session.class);
+        QContentRole qContentRole = QContentRole.contentRole;
+        QPerson qPerson = QPerson.person;
+        QContent qContent = QContent.content;
+
+        JPQLQuery<Person> queryFactory = new HibernateQuery<>(session);
+        JPQLQuery<Content> personJPQLQuery = queryFactory.from(qContentRole).where(qContentRole.roleType.eq(new RoleType(3)).and(qContentRole.person.id.eq(id))).select(qContent);
+
+        List<Content> content = personJPQLQuery.fetch();
+        String result = this.getFilteredResults(content, Content.ENTITY_NAME, Content.DETAILS);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

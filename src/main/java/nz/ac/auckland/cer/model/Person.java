@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+
 import javax.persistence.*;
 import java.util.Set;
 
@@ -12,6 +13,10 @@ import java.util.Set;
 @JsonFilter(Person.ENTITY_NAME)
 public class Person {
     public static final String ENTITY_NAME = "Person";
+    public static final String[] DETAILS = new String[] {
+        "orgUnits",
+        "contentRoles"
+    };
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

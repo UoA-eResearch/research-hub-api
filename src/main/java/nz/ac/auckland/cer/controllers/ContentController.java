@@ -9,11 +9,13 @@ import com.querydsl.jpa.JPAExpressions;
 
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
+import com.querydsl.jpa.impl.JPAQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.repository.GuideCategoryRepository;
+import nz.ac.auckland.cer.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,8 @@ import org.hibernate.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 @RestController
@@ -35,6 +39,9 @@ public class ContentController extends AbstractController {
 
     @Autowired
     private ContentRepository contentRepository;
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @Autowired
     private GuideCategoryRepository guideCategoryRepository;
@@ -196,5 +203,22 @@ public class ContentController extends AbstractController {
                 "additionalInfo", "callToAction", "description", "guideCategories");
 
         return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}/userSupport")
+    @ApiOperation(value = "get support people associated with a content")
+    public ResponseEntity<String> getPeople(@PathVariable Integer id) {
+        Session session = entityManager.unwrap(Session.class);
+        QContentRole qContentRole = QContentRole.contentRole;
+        QPerson qPerson = QPerson.person;
+
+        JPQLQuery<Person> queryFactory = new HibernateQuery<>(session);
+        JPQLQuery<Person> personJPQLQuery = queryFactory.from(qContentRole).where(qContentRole.roleType.eq(new RoleType(3)).and(qContentRole.content.id.eq(id))).select(qPerson);
+
+        List<Person> people = personJPQLQuery.fetch();
+        String result = this.getFilteredResults(people, Person.ENTITY_NAME, Person.DETAILS);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
