@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
+import com.querydsl.jpa.impl.JPAQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
@@ -19,8 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.persistence.*;
 import java.util.List;
 
 
@@ -83,12 +83,19 @@ public class OrgUnitController extends AbstractController {
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit/{id}/userSupport")
     @ApiOperation(value = "get support people associated with an organisational unit")
     public ResponseEntity<String> getPeople(@PathVariable Integer id) {
-//
-//        SELECT *
-//        FROM person_content_role
-//        INNER JOIN person_org_unit ON person_content_role.person_id=person_org_unit.person_id
-//        WHERE person_content_role.role_type_id=3;
+        Query nativeQuery = entityManager.createNativeQuery(
+                "SELECT DISTINCT person.id, person.title, person.first_name, person.last_name, person.email, person.username, person.job_title, person.directory_url, person.image\n" +
+                        "FROM person_content_role\n" +
+                        "INNER JOIN person_org_unit\n" +
+                        "ON person_content_role.person_id=person_org_unit.person_id\n" +
+                        "INNER JOIN person\n" +
+                        "ON person_content_role.person_id=person.id\n" +
+                        "WHERE person_content_role.role_type_id=3 AND person_org_unit.org_unit_id=?;", Person.class);
+        nativeQuery.setParameter(1, id);
 
-        return new ResponseEntity<>("", HttpStatus.OK);
+        List<Person> items = nativeQuery.getResultList();
+        String result = this.getFilteredResults(items, Person.ENTITY_NAME, Person.DETAILS);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
