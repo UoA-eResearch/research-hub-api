@@ -16,6 +16,7 @@ import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.repository.GuideCategoryRepository;
 import nz.ac.auckland.cer.repository.PersonRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,8 @@ import org.hibernate.Session;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import javax.persistence.Query;
+import java.util.*;
 
 
 @RestController
@@ -39,9 +39,6 @@ public class ContentController extends AbstractController {
 
     @Autowired
     private ContentRepository contentRepository;
-
-    @Autowired
-    private PersonRepository personRepository;
 
     @Autowired
     private GuideCategoryRepository guideCategoryRepository;
@@ -62,61 +59,75 @@ public class ContentController extends AbstractController {
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        Session session = entityManager.unwrap(Session.class);
-        JPQLQuery<Content> queryFactory = new HibernateQuery<>(session);
-        QContent qContent = QContent.content;
-        QKeyword qKeyword = QKeyword.keyword1;
-        QPerson qPerson = QPerson.person;
-        QOrgUnit qOrgUnit = QOrgUnit.orgUnit;
+        boolean searchSearchText = false;
+        boolean searchContentTypes = false;
+        String searchTextTrimmed = "";
+        String searchTerms = "";
 
-        BooleanBuilder builder = new BooleanBuilder();
-
-        if(contentTypes != null)
-        {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-
-            for(Integer id : contentTypes)
-            {
-                predicates.add(qContent.contentTypes.contains(new ContentType(id)));
-            }
-
-            builder.andAnyOf(predicates.stream().toArray(Predicate[]::new));
+        if(searchText != null) {
+            searchTextTrimmed = searchText.trim();
+            String[] searchTokens =  searchTextTrimmed.split("\\s+");
+            searchTerms = String.join("|",searchTokens);
+            searchSearchText = !searchTextTrimmed.equals("");
         }
 
-        if(searchText != null)
-        {
-            String searchTextTrimmed = searchText.trim();
-
-            if(!searchTextTrimmed.equals("")) {
-                String[] tokens = searchTextTrimmed.split(" ");
-                BooleanBuilder searchTokenBuilder = new BooleanBuilder();
-
-                for(String token: tokens) {
-                    searchTokenBuilder.or(qContent.name.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.summary.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.description.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.description.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.actionableInfo.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.additionalInfo.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.keywords.any().keyword.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.people.any().firstName.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.people.any().lastName.containsIgnoreCase(token));
-                    searchTokenBuilder.or(qContent.orgUnits.any().name.containsIgnoreCase(token));
-                }
-
-                builder.and(searchTokenBuilder);
-            }
+        if(contentTypes != null) {
+            searchContentTypes = contentTypes.length > 0;
         }
 
-        JPQLQuery<Content> contentQuery = queryFactory.from(qContent).where(builder);
-        JPQLQuery<Content> paginatedQuery = contentQuery.offset(page*size).limit(size);
+        String contentSqlStr = "SELECT DISTINCT content.* \n" +
+                "FROM person_content_role \n" +
+                "INNER JOIN person ON person.id=person_content_role.person_id\n" +
+                "INNER JOIN content ON content.id=person_content_role.content_id\n" +
+                "INNER JOIN content_content_type ON content_content_type.content_id=content.id\n" +
+                "INNER JOIN content_keyword ON content_keyword.content_id=content.id\n" +
+                "INNER JOIN content_org_unit ON content_org_unit.content_id=content.id\n" +
+                "INNER JOIN org_unit ON org_unit.id=content_org_unit.org_unit_id\n";
 
-        int totalElements = (int)contentQuery.fetchCount();
+        if(searchSearchText) {
+            contentSqlStr += "WHERE (content.name REGEXP :search_terms\n" +
+                    "      OR content.summary REGEXP :search_terms\n" +
+                    "      OR content.description REGEXP :search_terms\n" +
+                    "      OR content.actionable_info REGEXP :search_terms\n" +
+                    "      OR content.additional_info REGEXP :search_terms\n" +
+                    "      OR person.first_name REGEXP :search_terms and person_content_role.role_type_id=3\n" +
+                    "      OR person.last_name REGEXP :search_terms and person_content_role.role_type_id=3\n" +
+                    "      OR content_keyword.keyword REGEXP :search_terms\n" +
+                    "      OR org_unit.name REGEXP :search_terms)";
+        }
+
+        if (searchContentTypes) {
+            if (searchSearchText) {
+                contentSqlStr += "AND ";
+            } else {
+                contentSqlStr += "WHERE ";
+            }
+
+            contentSqlStr += "content_content_type.content_type_id IN (";
+            contentSqlStr += StringUtils.join(contentTypes, ",") + ")";
+        }
+
+        Query contentNativeQuery = entityManager.createNativeQuery(contentSqlStr, Content.class);
+
+        String contentPaginatedSqlStr = contentSqlStr + " LIMIT :limit OFFSET :offset";
+        Query contentPaginatedNativeQuery = entityManager.createNativeQuery(contentPaginatedSqlStr, Content.class);
+
+        if(searchSearchText) {
+            contentNativeQuery.setParameter("search_terms", searchTerms);
+            contentPaginatedNativeQuery.setParameter("search_terms", searchTerms);
+        }
+
+        contentPaginatedNativeQuery.setParameter("limit", size);
+        contentPaginatedNativeQuery.setParameter("offset", page * size);
+
+        List<Content> paginatedResults = contentPaginatedNativeQuery.getResultList();
+
+        int totalElements = contentNativeQuery.getResultList().size(); //Not ideal because we are searching twice
         int totalPages = (int)Math.ceil((float)totalElements / (float)size);
-        int numberOfElements = (int)paginatedQuery.fetchCount();
+        int numberOfElements = paginatedResults.size();
 
         Page<Content> hubPage = new Page<>();
-        hubPage.content = paginatedQuery.fetch();
+        hubPage.content = paginatedResults;
         hubPage.last = (page + 1) >= totalPages;
         hubPage.totalPages = totalPages;
         hubPage.totalElements = totalElements;
