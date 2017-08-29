@@ -56,11 +56,17 @@ public class PersonController extends AbstractController {
         if (searchText != null) {
             String searchTextLower = searchText.toLowerCase().trim();
 
+
             if (!searchTextLower.equals("")) {
-                builder.andAnyOf(
-                        qPerson.firstName.toLowerCase().contains(searchTextLower),
-                        qPerson.lastName.toLowerCase().contains(searchTextLower)
-                );
+                String[] searchTokens =  searchTextLower.split("\\s+");
+                BooleanBuilder nameMatch = new BooleanBuilder();
+
+                for(String token: searchTokens) {
+                    nameMatch.or(qPerson.firstName.containsIgnoreCase(token));
+                    nameMatch.or(qPerson.lastName.containsIgnoreCase(token));
+                }
+
+                builder.and(nameMatch);
             }
         }
 
