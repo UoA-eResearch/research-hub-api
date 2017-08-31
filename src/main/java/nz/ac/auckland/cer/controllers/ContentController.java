@@ -76,15 +76,19 @@ public class ContentController extends AbstractController {
         }
 
         String contentSqlStr = "SELECT DISTINCT content.* \n" +
-                "FROM person_content_role \n" +
-                "INNER JOIN person ON person.id=person_content_role.person_id\n" +
-                "INNER JOIN content ON content.id=person_content_role.content_id\n" +
-                "INNER JOIN content_content_type ON content_content_type.content_id=content.id\n" +
-                "INNER JOIN content_keyword ON content_keyword.content_id=content.id\n" +
-                "INNER JOIN content_org_unit ON content_org_unit.content_id=content.id\n" +
-                "INNER JOIN org_unit ON org_unit.id=content_org_unit.org_unit_id\n";
+                "FROM content \n";
+
+        if (searchContentTypes) {
+            contentSqlStr += "INNER JOIN content_content_type ON content_content_type.content_id=content.id\n";
+        }
 
         if(searchSearchText) {
+            contentSqlStr += "INNER JOIN person_content_role ON person_content_role.content_id=content.id\n" +
+                    "INNER JOIN person ON person.id=person_content_role.person_id\n" +
+                    "INNER JOIN content_keyword ON content_keyword.content_id=content.id\n" +
+                    "INNER JOIN content_org_unit ON content_org_unit.content_id=content.id\n" +
+                    "INNER JOIN org_unit ON org_unit.id=content_org_unit.org_unit_id\n";
+
             contentSqlStr += "WHERE (content.name REGEXP :search_terms\n" +
                     "      OR content.summary REGEXP :search_terms\n" +
                     "      OR content.description REGEXP :search_terms\n" +
