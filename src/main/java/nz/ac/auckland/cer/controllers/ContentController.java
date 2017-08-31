@@ -141,9 +141,7 @@ public class ContentController extends AbstractController {
         hubPage.size = size;
         hubPage.number = page;
 
-        String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME,"webpages",
-                "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
-                "additionalInfo", "callToAction", "description");
+        String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME, Content.DETAILS);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
