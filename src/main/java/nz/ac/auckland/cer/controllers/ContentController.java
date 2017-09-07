@@ -3,20 +3,17 @@ package nz.ac.auckland.cer.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
-import com.querydsl.jpa.JPAExpressions;
 
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
-import com.querydsl.jpa.impl.JPAQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.repository.GuideCategoryRepository;
-import nz.ac.auckland.cer.repository.PersonRepository;
-import org.apache.commons.lang3.StringUtils;
+import nz.ac.auckland.cer.sql.SqlParameter;
+import nz.ac.auckland.cer.sql.SqlQuery;
+import nz.ac.auckland.cer.sql.SqlStatement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +24,10 @@ import org.hibernate.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.math.BigInteger;
 import java.util.*;
+
+
 
 
 @RestController
@@ -52,7 +52,10 @@ public class ContentController extends AbstractController {
     @ApiOperation(value = "search for content items")
     public ResponseEntity<String> getContent(@RequestParam Integer page,
                                              @RequestParam Integer size,
-                                             @RequestParam(required = false) Integer[] contentTypes,
+                                             @RequestParam(required = false) List<Integer> contentTypes,
+                                             @RequestParam(required = false) List<Integer> researchPhases,
+                                             @RequestParam(required = false) List<Integer> people,
+                                             @RequestParam(required = false) List<Integer> orgUnits,
                                              @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes less than 50
@@ -60,73 +63,90 @@ public class ContentController extends AbstractController {
         size = size > 50 ? 50 : size;
 
         boolean searchSearchText = false;
-        boolean searchContentTypes = false;
+        boolean searchContentTypes = contentTypes != null && contentTypes.size() > 0;
+        boolean searchResearchPhases = researchPhases != null && researchPhases.size() > 0;
+        boolean searchPeople = people != null && people.size() > 0;
+        boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
         String searchTextTrimmed = "";
-        String searchTerms = "";
+        List<Boolean> searchConditions = new ArrayList<>();
 
         if(searchText != null) {
             searchTextTrimmed = searchText.trim();
-            String[] searchTokens =  searchTextTrimmed.split("\\s+");
-            searchTerms = String.join("|",searchTokens);
             searchSearchText = !searchTextTrimmed.equals("");
         }
 
-        if(contentTypes != null) {
-            searchContentTypes = contentTypes.length > 0;
-        }
+        ArrayList<SqlStatement> statements = new ArrayList<>();
 
-        String contentSqlStr = "SELECT DISTINCT content.* \n" +
-                "FROM content \n";
+        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM content", false);
+        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT content.* FROM content", true);
 
-        if (searchContentTypes) {
-            contentSqlStr += "INNER JOIN content_content_type ON content_content_type.content_id=content.id\n";
-        }
+        statements.add(countStatement);
+        statements.add(selectStatement);
 
-        if(searchSearchText) {
-            contentSqlStr += "INNER JOIN person_content_role ON person_content_role.content_id=content.id\n" +
-                    "INNER JOIN person ON person.id=person_content_role.person_id\n" +
-                    "INNER JOIN content_keyword ON content_keyword.content_id=content.id\n" +
-                    "INNER JOIN content_org_unit ON content_org_unit.content_id=content.id\n" +
-                    "INNER JOIN org_unit ON org_unit.id=content_org_unit.org_unit_id\n";
+        statements.add(new SqlStatement("INNER JOIN content_content_type ON content_content_type.content_id=content.id",
+                        searchContentTypes));
 
-            contentSqlStr += "WHERE (content.name REGEXP :search_terms\n" +
-                    "      OR content.summary REGEXP :search_terms\n" +
-                    "      OR content.description REGEXP :search_terms\n" +
-                    "      OR content.actionable_info REGEXP :search_terms\n" +
-                    "      OR content.additional_info REGEXP :search_terms\n" +
-                    "      OR person.first_name REGEXP :search_terms and person_content_role.role_type_id=3\n" +
-                    "      OR person.last_name REGEXP :search_terms and person_content_role.role_type_id=3\n" +
-                    "      OR content_keyword.keyword REGEXP :search_terms\n" +
-                    "      OR org_unit.name REGEXP :search_terms)";
-        }
+        statements.add(new SqlStatement("INNER JOIN content_research_phase ON content_research_phase.content_id=content.id",
+                        searchResearchPhases));
 
-        if (searchContentTypes) {
-            if (searchSearchText) {
-                contentSqlStr += "AND ";
-            } else {
-                contentSqlStr += "WHERE ";
-            }
+        statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.content_id=content.id",
+                        searchPeople));
 
-            contentSqlStr += "content_content_type.content_type_id IN (";
-            contentSqlStr += StringUtils.join(contentTypes, ",") + ")";
-        }
+        statements.add(new SqlStatement("INNER JOIN content_org_unit ON content_org_unit.content_id=content.id",
+                        searchOrgUnits));
 
-        Query contentNativeQuery = entityManager.createNativeQuery(contentSqlStr, Content.class);
+        statements.add(new SqlStatement("WHERE",searchSearchText || searchContentTypes || searchResearchPhases || searchPeople || searchOrgUnits));
 
-        String contentPaginatedSqlStr = contentSqlStr + " LIMIT :limit OFFSET :offset";
-        Query contentPaginatedNativeQuery = entityManager.createNativeQuery(contentPaginatedSqlStr, Content.class);
+        searchConditions.add(searchSearchText);
+        statements.add(new SqlStatement("MATCH (name, summary, description, actionable_info, additional_info) AGAINST (:search_text IN NATURAL LANGUAGE MODE)",
+                searchSearchText,
+                new SqlParameter<>("search_text", searchTextTrimmed)));
 
-        if(searchSearchText) {
-            contentNativeQuery.setParameter("search_terms", searchTerms);
-            contentPaginatedNativeQuery.setParameter("search_terms", searchTerms);
-        }
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentTypes));
 
-        contentPaginatedNativeQuery.setParameter("limit", size);
-        contentPaginatedNativeQuery.setParameter("offset", page * size);
+        searchConditions.add(searchContentTypes);
+        statements.add(new SqlStatement("content_content_type.content_type_id IN :content_types",
+                        searchContentTypes,
+                        new SqlParameter<>("content_types", contentTypes)));
 
-        List<Content> paginatedResults = contentPaginatedNativeQuery.getResultList();
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchResearchPhases));
 
-        int totalElements = contentNativeQuery.getResultList().size(); //Not ideal because we are searching twice
+        searchConditions.add(searchResearchPhases);
+        statements.add(new SqlStatement("content_research_phase.research_phase_id IN :research_phases",
+                        searchResearchPhases,
+                        new SqlParameter<>("research_phases", researchPhases)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchPeople));
+
+        searchConditions.add(searchPeople);
+        statements.add(new SqlStatement("person_content_role.person_id IN :people AND person_content_role.role_type_id=3",
+                        searchPeople,
+                        new SqlParameter<>("people", people)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
+
+        searchConditions.add(searchOrgUnits);
+        statements.add(new SqlStatement("content_org_unit.org_unit_id IN :org_units",
+                        searchOrgUnits,
+                        new SqlParameter<>("org_units", orgUnits)));
+
+        SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
+                                                            true,
+                                                            new SqlParameter<>("limit", size),
+                                                            new SqlParameter<>("offset", page * size));
+        statements.add(paginationStatement);
+
+        // Create native queries and set parameters
+        Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, Content.class);
+
+        countStatement.setExecute(true);
+        selectStatement.setExecute(false);
+        paginationStatement.setExecute(false);
+        Query contentCountQuery = SqlQuery.generate(entityManager, statements, null);
+
+        // Get data and return results
+        List<Content> paginatedResults = contentPaginatedQuery.getResultList();
+        int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
         int totalPages = (int)Math.ceil((float)totalElements / (float)size);
         int numberOfElements = paginatedResults.size();
 
