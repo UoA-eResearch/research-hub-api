@@ -52,6 +52,7 @@ public class ContentController extends AbstractController {
     @ApiOperation(value = "search for content items")
     public ResponseEntity<String> getContent(@RequestParam Integer page,
                                              @RequestParam Integer size,
+                                             @RequestParam(required = false) String orderBy,
                                              @RequestParam(required = false) List<Integer> contentTypes,
                                              @RequestParam(required = false) List<Integer> researchPhases,
                                              @RequestParam(required = false) List<Integer> people,
@@ -73,6 +74,12 @@ public class ContentController extends AbstractController {
         if(searchText != null) {
             searchTextTrimmed = searchText.trim();
             searchSearchText = !searchTextTrimmed.equals("");
+            searchTextTrimmed += "*";
+        }
+
+        boolean orderByRelevance = true;
+        if(orderBy != null) {
+            orderByRelevance = orderBy.equals("relevance");
         }
 
         ArrayList<SqlStatement> statements = new ArrayList<>();
@@ -98,7 +105,7 @@ public class ContentController extends AbstractController {
         statements.add(new SqlStatement("WHERE",searchSearchText || searchContentTypes || searchResearchPhases || searchPeople || searchOrgUnits));
 
         searchConditions.add(searchSearchText);
-        statements.add(new SqlStatement("MATCH (name, summary, description, actionable_info, additional_info) AGAINST (:search_text IN NATURAL LANGUAGE MODE)",
+        statements.add(new SqlStatement("MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)",
                 searchSearchText,
                 new SqlParameter<>("search_text", searchTextTrimmed)));
 
@@ -130,6 +137,12 @@ public class ContentController extends AbstractController {
                         searchOrgUnits,
                         new SqlParameter<>("org_units", orgUnits)));
 
+        statements.add(new SqlStatement("ORDER BY MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE) DESC",
+                searchSearchText && orderByRelevance));
+
+        statements.add(new SqlStatement("ORDER BY content.name ASC",
+                !searchSearchText || !orderByRelevance));
+
         SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
                                                             true,
                                                             new SqlParameter<>("limit", size),
@@ -147,20 +160,7 @@ public class ContentController extends AbstractController {
         // Get data and return results
         List<Content> paginatedResults = contentPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
-        int totalPages = (int)Math.ceil((float)totalElements / (float)size);
-        int numberOfElements = paginatedResults.size();
-
-        Page<Content> hubPage = new Page<>();
-        hubPage.content = paginatedResults;
-        hubPage.last = (page + 1) >= totalPages;
-        hubPage.totalPages = totalPages;
-        hubPage.totalElements = totalElements;
-//        hubPage.sort;
-        hubPage.first = page == 0;
-        hubPage.numberOfElements = numberOfElements;
-        hubPage.size = size;
-        hubPage.number = page;
-
+        Page<Content> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
         String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME, Content.DETAILS);
 
         return new ResponseEntity<>(result, HttpStatus.OK);

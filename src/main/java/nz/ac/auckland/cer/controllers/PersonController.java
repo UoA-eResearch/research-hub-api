@@ -10,6 +10,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.PersonRepository;
+import nz.ac.auckland.cer.sql.SqlParameter;
+import nz.ac.auckland.cer.sql.SqlQuery;
+import nz.ac.auckland.cer.sql.SqlStatement;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -35,58 +41,93 @@ public class PersonController extends AbstractController {
         super();
     }
 
+    private static String PERSON_MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
+
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person")
     @ApiOperation(value = "search for people")
     public ResponseEntity<String> getPerson(@RequestParam Integer page,
                                             @RequestParam Integer size,
+                                            @RequestParam(required = false) String orderBy,
+                                            @RequestParam(required = false) List<Integer> orgUnits,
                                             @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes less than 50
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        Session session = entityManager.unwrap(Session.class);
-        JPQLQuery<Person> queryFactory = new HibernateQuery<>(session);
-        QPerson qPerson = QPerson.person;
+        boolean searchSearchText = false;
+        boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
+        String searchTextTrimmed = "";
+        List<Boolean> searchConditions = new ArrayList<>();
 
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(qPerson.contentRoles.any().roleType.eq(new RoleType(3))); // Only get user support people
-
-        if (searchText != null) {
-            String searchTextLower = searchText.toLowerCase().trim();
-
-
-            if (!searchTextLower.equals("")) {
-                String[] searchTokens =  searchTextLower.split("\\s+");
-                BooleanBuilder nameMatch = new BooleanBuilder();
-
-                for(String token: searchTokens) {
-                    nameMatch.or(qPerson.firstName.containsIgnoreCase(token));
-                    nameMatch.or(qPerson.lastName.containsIgnoreCase(token));
-                }
-
-                builder.and(nameMatch);
-            }
+        if(searchText != null) {
+            searchTextTrimmed = searchText.trim();
+            searchSearchText = !searchTextTrimmed.equals("");
+            searchTextTrimmed += "*";
         }
 
-        JPQLQuery<Person> personQuery = queryFactory.from(qPerson).where(builder);
-        JPQLQuery<Person> paginatedQuery = personQuery.offset(page * size).limit(size);
+        boolean orderByRelevance = true;
+        if(orderBy != null) {
+            orderByRelevance = orderBy.equals("relevance");
+        }
 
-        int totalElements = (int) personQuery.fetchCount();
-        int totalPages = (int) Math.ceil((float) totalElements / (float) size);
-        int numberOfElements = (int) paginatedQuery.fetchCount();
+        ArrayList<SqlStatement> statements = new ArrayList<>();
 
-        nz.ac.auckland.cer.model.Page<Person> hubPage = new nz.ac.auckland.cer.model.Page<>();
-        hubPage.content = paginatedQuery.fetch();
-        hubPage.last = (page + 1) >= totalPages;
-        hubPage.totalPages = totalPages;
-        hubPage.totalElements = totalElements;
-//        hubPage.sort;
-        hubPage.first = page == 0;
-        hubPage.numberOfElements = numberOfElements;
-        hubPage.size = size;
-        hubPage.number = page;
+        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM person", false);
+        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT person.* FROM person", true);
+
+        statements.add(countStatement);
+        statements.add(selectStatement);
+
+        statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.person_id=person.id",
+                true));
+
+        statements.add(new SqlStatement("INNER JOIN person_org_unit ON person_org_unit.person_id=person.id",
+                searchOrgUnits));
+
+        statements.add(new SqlStatement("WHERE", true));
+
+        statements.add(new SqlStatement("person_content_role.role_type_id=3",
+                true));
+
+        statements.add(new SqlStatement("AND", searchSearchText || searchOrgUnits));
+
+        searchConditions.add(searchSearchText);
+        statements.add(new SqlStatement(PERSON_MATCH_SQL,
+                searchSearchText,
+                new SqlParameter<>("search_text", searchTextTrimmed)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
+
+        searchConditions.add(searchOrgUnits);
+        statements.add(new SqlStatement("person_org_unit.org_unit_id IN :org_units",
+                searchOrgUnits,
+                new SqlParameter<>("org_units", orgUnits)));
+
+        statements.add(new SqlStatement("ORDER BY " + PERSON_MATCH_SQL + " DESC",
+                searchSearchText && orderByRelevance));
+
+        statements.add(new SqlStatement("ORDER BY person.first_name, person.last_name ASC",
+                !searchSearchText || !orderByRelevance));
+
+        SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
+                true,
+                new SqlParameter<>("limit", size),
+                new SqlParameter<>("offset", page * size));
+
+        // Create native queries and set parameters
+        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Person.class);
+
+        countStatement.setExecute(true);
+        selectStatement.setExecute(false);
+        paginationStatement.setExecute(false);
+        Query personCountQuery = SqlQuery.generate(entityManager, statements, null);
+
+        // Get data and return results
+        List<Person> paginatedResults = personPaginatedQuery.getResultList();
+        int totalElements = ((BigInteger)personCountQuery.getSingleResult()).intValue();
+        Page<Person> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
 
         String result = this.getFilteredResults(hubPage, Person.ENTITY_NAME, Person.DETAILS);
 

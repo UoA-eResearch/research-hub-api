@@ -5,9 +5,14 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.hibernate.HibernateQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import nz.ac.auckland.cer.model.Page;
+import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.model.Policy;
 import nz.ac.auckland.cer.model.QPolicy;
 import nz.ac.auckland.cer.repository.PolicyRepository;
+import nz.ac.auckland.cer.sql.SqlParameter;
+import nz.ac.auckland.cer.sql.SqlQuery;
+import nz.ac.auckland.cer.sql.SqlStatement;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +21,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RestController
@@ -32,51 +41,73 @@ public class PolicyController extends AbstractController {
         super();
     }
 
+    private static String POLICY_MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
+
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/policy")
     @ApiOperation(value = "search for policies")
     public ResponseEntity<String> getPolicy(@RequestParam Integer page,
                                             @RequestParam Integer size,
+                                            @RequestParam(required = false) String orderBy,
                                             @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes less than 50
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        Session session = entityManager.unwrap(Session.class);
-        JPQLQuery<Policy> queryFactory = new HibernateQuery<>(session);
-        QPolicy qPolicy = QPolicy.policy;
+        boolean searchSearchText = false;
+        String searchTextTrimmed = "";
+        List<Boolean> searchConditions = new ArrayList<>();
 
-        BooleanBuilder builder = new BooleanBuilder();
-
-        if (searchText != null) {
-            String searchTextLower = searchText.toLowerCase().trim();
-
-            if (!searchTextLower.equals("")) {
-                builder.andAnyOf(
-                        qPolicy.name.toLowerCase().contains(searchTextLower),
-                        qPolicy.description.toLowerCase().contains(searchTextLower)
-                );
-            }
+        if(searchText != null) {
+            searchTextTrimmed = searchText.trim();
+            searchSearchText = !searchTextTrimmed.equals("");
+            searchTextTrimmed += "*";
         }
 
-        JPQLQuery<Policy> policyQuery = queryFactory.from(qPolicy).where(builder);
-        JPQLQuery<Policy> paginatedQuery = policyQuery.offset(page * size).limit(size);
+        boolean orderByRelevance = true;
+        if(orderBy != null) {
+            orderByRelevance = orderBy.equals("relevance");
+        }
 
-        int totalElements = (int) policyQuery.fetchCount();
-        int totalPages = (int) Math.ceil((float) totalElements / (float) size);
-        int numberOfElements = (int) paginatedQuery.fetchCount();
+        ArrayList<SqlStatement> statements = new ArrayList<>();
 
-        nz.ac.auckland.cer.model.Page<Policy> hubPage = new nz.ac.auckland.cer.model.Page<>();
-        hubPage.content = paginatedQuery.fetch();
-        hubPage.last = (page + 1) >= totalPages;
-        hubPage.totalPages = totalPages;
-        hubPage.totalElements = totalElements;
-//        hubPage.sort;
-        hubPage.first = page == 0;
-        hubPage.numberOfElements = numberOfElements;
-        hubPage.size = size;
-        hubPage.number = page;
+        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM policy", false);
+        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT policy.* FROM policy", true);
+
+        statements.add(countStatement);
+        statements.add(selectStatement);
+
+        statements.add(new SqlStatement("WHERE",searchSearchText));
+
+        searchConditions.add(searchSearchText);
+        statements.add(new SqlStatement(POLICY_MATCH_SQL,
+                searchSearchText,
+                new SqlParameter<>("search_text", searchTextTrimmed)));
+
+        statements.add(new SqlStatement("ORDER BY " + POLICY_MATCH_SQL + " DESC",
+                searchSearchText && orderByRelevance));
+
+        statements.add(new SqlStatement("ORDER BY policy.name ASC",
+                !searchSearchText || !orderByRelevance));
+
+        SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
+                true,
+                new SqlParameter<>("limit", size),
+                new SqlParameter<>("offset", page * size));
+
+        // Create native queries and set parameters
+        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Policy.class);
+
+        countStatement.setExecute(true);
+        selectStatement.setExecute(false);
+        paginationStatement.setExecute(false);
+        Query personCountQuery = SqlQuery.generate(entityManager, statements, null);
+
+        // Get data and return results
+        List<Policy> paginatedResults = personPaginatedQuery.getResultList();
+        int totalElements = ((BigInteger)personCountQuery.getSingleResult()).intValue();
+        Page<Policy> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
 
         String result = this.getFilteredResults(hubPage, Policy.ENTITY_NAME, "contentItems");
 
