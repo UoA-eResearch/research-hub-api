@@ -225,9 +225,7 @@ public class ContentController extends AbstractController {
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
-        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, "webpages",
-                "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies", "similarContentItems", "actionableInfo",
-                "additionalInfo", "callToAction", "description", "guideCategories");
+        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, Content.DETAILS);
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }

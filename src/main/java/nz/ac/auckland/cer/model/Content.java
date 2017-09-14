@@ -12,7 +12,7 @@ import java.util.Set;
 public class Content {
     public static final String ENTITY_NAME = "Content";
     public static final String[] DETAILS = new String[] {
-            "webpages", "keywords", "contentTypes", "orgUnits", "researchPhases", "people", "policies",
+            "webpages", "keywords", "orgUnits", "researchPhases", "people", "policies",
             "similarContentItems", "actionableInfo", "additionalInfo", "callToAction", "description", "guideCategories"
     };
 
