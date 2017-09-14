@@ -7,6 +7,22 @@ import java.util.ArrayList;
 
 public class SqlQuery {
 
+    public static String preProcessSearchText(String searchText) {
+        String processed = "";
+
+        if(searchText != null) {
+            processed = searchText.trim();
+
+            if(!processed.contains("\"") && !processed.contains("*")) {
+                processed += "*";
+            } else if(processed.contains("\"")) {
+                processed = processed.replace("*", "");
+            }
+        }
+
+        return processed;
+    }
+
     public static Query generate(EntityManager entityManager, ArrayList<SqlStatement> statements, Class resultClass) {
         // Create SQL String
         StringBuilder sqlStringBuilder = new StringBuilder();

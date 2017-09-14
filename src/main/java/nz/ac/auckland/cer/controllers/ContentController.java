@@ -63,19 +63,13 @@ public class ContentController extends AbstractController {
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        boolean searchSearchText = false;
+        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
+        boolean searchSearchText = !searchTextProcessed.equals("");
         boolean searchContentTypes = contentTypes != null && contentTypes.size() > 0;
         boolean searchResearchPhases = researchPhases != null && researchPhases.size() > 0;
         boolean searchPeople = people != null && people.size() > 0;
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
-        String searchTextTrimmed = "";
         List<Boolean> searchConditions = new ArrayList<>();
-
-        if(searchText != null) {
-            searchTextTrimmed = searchText.trim();
-            searchSearchText = !searchTextTrimmed.equals("");
-            searchTextTrimmed += "*";
-        }
 
         boolean orderByRelevance = true;
         if(orderBy != null) {
@@ -107,7 +101,7 @@ public class ContentController extends AbstractController {
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement("MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)",
                 searchSearchText,
-                new SqlParameter<>("search_text", searchTextTrimmed)));
+                new SqlParameter<>("search_text", searchTextProcessed)));
 
         statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentTypes));
 

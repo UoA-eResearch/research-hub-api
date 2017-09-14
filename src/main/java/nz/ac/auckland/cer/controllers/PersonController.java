@@ -56,16 +56,10 @@ public class PersonController extends AbstractController {
         page = page < 0 ? 0 : page;
         size = size > 50 ? 50 : size;
 
-        boolean searchSearchText = false;
+        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
-        String searchTextTrimmed = "";
+        boolean searchSearchText = !searchTextProcessed.equals("");
         List<Boolean> searchConditions = new ArrayList<>();
-
-        if(searchText != null) {
-            searchTextTrimmed = searchText.trim();
-            searchSearchText = !searchTextTrimmed.equals("");
-            searchTextTrimmed += "*";
-        }
 
         boolean orderByRelevance = true;
         if(orderBy != null) {
@@ -96,7 +90,7 @@ public class PersonController extends AbstractController {
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement(PERSON_MATCH_SQL,
                 searchSearchText,
-                new SqlParameter<>("search_text", searchTextTrimmed)));
+                new SqlParameter<>("search_text", searchTextProcessed)));
 
         statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
 
