@@ -51,9 +51,9 @@ public class PolicyController extends AbstractController {
                                             @RequestParam(required = false) String orderBy,
                                             @RequestParam(required = false) String searchText) {
 
-        // Make sure pages greater than 0 and page sizes less than 50
+        // Make sure pages greater than 0 and page sizes at least 1
         page = page < 0 ? 0 : page;
-        size = size > 50 ? 50 : size;
+        size = size < 1 ? 1 : size;
 
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");

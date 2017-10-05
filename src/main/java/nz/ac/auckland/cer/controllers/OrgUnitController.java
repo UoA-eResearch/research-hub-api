@@ -45,9 +45,9 @@ public class OrgUnitController extends AbstractController {
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit")
     @ApiOperation(value = "get a list of org units")
     public ResponseEntity<String> getContent(@RequestParam Integer page, @RequestParam Integer size) {
-        // Make sure pages greater than 0 and page sizes less than 50
+        // Make sure pages greater than 0 and page sizes at least 1
         page = page < 0 ? 0 : page;
-        size = size > 50 ? 50 : size;
+        size = size < 1 ? 1 : size;
 
         final Page<OrgUnit> items = orgUnitRepository.findAll(new PageRequest(page, size));
         String results = this.getFilteredResults(items, OrgUnit.ENTITY_NAME, "people", "contentItems");
