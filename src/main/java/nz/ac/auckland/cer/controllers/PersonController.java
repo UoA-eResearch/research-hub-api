@@ -50,6 +50,8 @@ public class PersonController extends AbstractController {
                                             @RequestParam Integer size,
                                             @RequestParam(required = false) String orderBy,
                                             @RequestParam(required = false) List<Integer> orgUnits,
+                                            @RequestParam(required = false) List<Integer> contentItems,
+                                            @RequestParam(required = false) List<Integer> roleTypes,
                                             @RequestParam(required = false) String searchText) {
 
         // Make sure pages greater than 0 and page sizes at least 1
@@ -59,6 +61,8 @@ public class PersonController extends AbstractController {
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
         boolean searchSearchText = !searchTextProcessed.equals("");
+        boolean searchContentItems = contentItems != null && contentItems.size() > 0;
+        boolean searchRoleTypes = searchContentItems && (roleTypes != null && roleTypes.size() > 0);
         List<Boolean> searchConditions = new ArrayList<>();
 
         boolean orderByRelevance = true;
@@ -75,17 +79,12 @@ public class PersonController extends AbstractController {
         statements.add(selectStatement);
 
         statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.person_id=person.id",
-                true));
+                searchContentItems || searchRoleTypes));
 
         statements.add(new SqlStatement("INNER JOIN person_org_unit ON person_org_unit.person_id=person.id",
                 searchOrgUnits));
 
-        statements.add(new SqlStatement("WHERE", true));
-
-        statements.add(new SqlStatement("person_content_role.role_type_id=3",
-                true));
-
-        statements.add(new SqlStatement("AND", searchSearchText || searchOrgUnits));
+        statements.add(new SqlStatement("WHERE", searchSearchText || searchOrgUnits || searchContentItems || searchRoleTypes));
 
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement(PERSON_MATCH_SQL,
@@ -98,6 +97,20 @@ public class PersonController extends AbstractController {
         statements.add(new SqlStatement("person_org_unit.org_unit_id IN :org_units",
                 searchOrgUnits,
                 new SqlParameter<>("org_units", orgUnits)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentItems));
+
+        searchConditions.add(searchContentItems);
+        statements.add(new SqlStatement("person_content_role.content_id IN :content_items",
+                searchContentItems,
+                new SqlParameter<>("content_items", contentItems)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchRoleTypes));
+
+        searchConditions.add(searchRoleTypes);
+        statements.add(new SqlStatement("person_content_role.role_type_id IN :role_types",
+                searchRoleTypes,
+                new SqlParameter<>("role_types", roleTypes)));
 
         statements.add(new SqlStatement("ORDER BY " + PERSON_MATCH_SQL + " DESC",
                 searchSearchText && orderByRelevance));
@@ -150,23 +163,5 @@ public class PersonController extends AbstractController {
         }
 
         return new ResponseEntity<>(results, HttpStatus.OK);
-    }
-
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.GET, value = "/person/{id}/userSupportContent")
-    @ApiOperation(value = "get support people associated with a content")
-    public ResponseEntity<String> getPeople(@PathVariable Integer id) {
-        Session session = entityManager.unwrap(Session.class);
-        QContentRole qContentRole = QContentRole.contentRole;
-        QPerson qPerson = QPerson.person;
-        QContent qContent = QContent.content;
-
-        JPQLQuery<Person> queryFactory = new HibernateQuery<>(session);
-        JPQLQuery<Content> personJPQLQuery = queryFactory.from(qContentRole).where(qContentRole.roleType.eq(new RoleType(3)).and(qContentRole.person.id.eq(id))).select(qContent);
-
-        List<Content> content = personJPQLQuery.fetch();
-        String result = this.getFilteredResults(content, Content.ENTITY_NAME, Content.DETAILS);
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }
