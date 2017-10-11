@@ -62,7 +62,7 @@ public class PersonController extends AbstractController {
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
         boolean searchSearchText = !searchTextProcessed.equals("");
         boolean searchContentItems = contentItems != null && contentItems.size() > 0;
-        boolean searchRoleTypes = searchContentItems && (roleTypes != null && roleTypes.size() > 0);
+        boolean searchRoleTypes = roleTypes != null && roleTypes.size() > 0;
         List<Boolean> searchConditions = new ArrayList<>();
 
         boolean orderByRelevance = true;
