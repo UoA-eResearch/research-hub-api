@@ -1,4 +1,4 @@
-package nz.ac.auckland.cer.model;
+package nz.ac.auckland.cer.model.requests;
 
 
 public class VMConsultation {
