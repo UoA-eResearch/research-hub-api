@@ -1,4 +1,4 @@
-gROM            java:8
+FROM            java:8
 MAINTAINER      James Diprose "j.diprose@auckland.ac.nz"
 
 ARG             http_proxy
