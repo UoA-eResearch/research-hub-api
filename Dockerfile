@@ -1,4 +1,4 @@
-FROM            java:8
+gROM            java:8
 MAINTAINER      James Diprose "j.diprose@auckland.ac.nz"
 
 ARG             http_proxy
@@ -28,5 +28,8 @@ WORKDIR         /research-hub-api/
 RUN             proxy=$(basename $http_proxy); host=${proxy%:*}; port=${proxy#*:}; mvn -DproxySet=true -DproxyHost=$host -DproxyPort=$port package
 RUN 		mvn package
 RUN             mv target/app.jar /app.jar
+
+# Dependencies for auto_cer
+RUN             apt-get update && apt-get install -y python3 python3-pip && pip3 install requests pymysql prettytable urllib3 selenium selenium-requests
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.config.location=file:/application.properties","-jar","/app.jar"]
