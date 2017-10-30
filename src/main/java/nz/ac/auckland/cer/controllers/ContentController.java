@@ -8,7 +8,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.*;
 import nz.ac.auckland.cer.repository.ContentRepository;
-import nz.ac.auckland.cer.repository.GuideCategoryRepository;
 import nz.ac.auckland.cer.sql.SqlParameter;
 import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
@@ -33,9 +32,6 @@ public class ContentController extends AbstractController {
 
     @Autowired
     private ContentRepository contentRepository;
-
-    @Autowired
-    private GuideCategoryRepository guideCategoryRepository;
 
     public ContentController() {
         super();
@@ -206,29 +202,6 @@ public class ContentController extends AbstractController {
     public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
         String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, Content.DETAILS);
-
-        return new ResponseEntity<>(results, HttpStatus.OK);
-    }
-
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}/guideCategory/{id}")
-    @ApiOperation(value = "get a specific guide")
-    public ResponseEntity<String> getGuide(@PathVariable Integer id) {
-        final GuideCategory item = guideCategoryRepository.findOne(id);
-
-        String results = "";
-        SimpleFilterProvider filter = new SimpleFilterProvider();
-        filter.setFailOnUnknownId(false);
-        filter.addFilter(GuideCategory.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("content"));
-        filter.addFilter("contentItems", SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
-
-        try
-        {
-            results = objectMapper.writer(filter).writeValueAsString(item);
-        }
-        catch (JsonProcessingException e) {
-
-        }
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
