@@ -41,7 +41,15 @@ public class PolicyController extends AbstractController {
         super();
     }
 
-    private static String POLICY_MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
+    public static String POLICY_MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
+
+    public static ArrayList<SqlStatement> getSearchQuery(String searchText) {
+        boolean searchSearchText = !searchText.equals("");
+        ArrayList<SqlStatement> statements = new ArrayList<>();
+        statements.add(new SqlStatement("WHERE", searchSearchText));
+        statements.add(new SqlStatement(POLICY_MATCH_SQL, searchSearchText, new SqlParameter<>("search_text", searchText)));
+        return statements;
+    }
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/policy")
@@ -57,7 +65,6 @@ public class PolicyController extends AbstractController {
 
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
-        List<Boolean> searchConditions = new ArrayList<>();
 
         boolean orderByRelevance = true;
         if(orderBy != null) {
@@ -72,12 +79,7 @@ public class PolicyController extends AbstractController {
         statements.add(countStatement);
         statements.add(selectStatement);
 
-        statements.add(new SqlStatement("WHERE",searchSearchText));
-
-        searchConditions.add(searchSearchText);
-        statements.add(new SqlStatement(POLICY_MATCH_SQL,
-                searchSearchText,
-                new SqlParameter<>("search_text", searchTextProcessed)));
+        statements.addAll(PolicyController.getSearchQuery(searchText));
 
         statements.add(new SqlStatement("ORDER BY " + POLICY_MATCH_SQL + " DESC",
                 searchSearchText && orderByRelevance));
@@ -91,12 +93,12 @@ public class PolicyController extends AbstractController {
                 new SqlParameter<>("offset", page * size));
 
         // Create native queries and set parameters
-        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Policy.class);
+        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Policy.class, null);
 
         countStatement.setExecute(true);
         selectStatement.setExecute(false);
         paginationStatement.setExecute(false);
-        Query personCountQuery = SqlQuery.generate(entityManager, statements, null);
+        Query personCountQuery = SqlQuery.generate(entityManager, statements, null, null);
 
         // Get data and return results
         List<Policy> paginatedResults = personPaginatedQuery.getResultList();

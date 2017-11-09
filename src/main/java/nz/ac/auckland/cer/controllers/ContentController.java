@@ -37,6 +37,77 @@ public class ContentController extends AbstractController {
         super();
     }
 
+    public static String CONTENT_MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
+
+    public static ArrayList<SqlStatement> getSearchQuery(List<Integer> contentTypes, List<Integer> researchPhases,
+                                                         List<Integer> people, List<Integer> roleTypes, List<Integer> orgUnits, String searchText) {
+        boolean searchSearchText = !searchText.equals("");
+        boolean searchContentTypes = contentTypes != null && contentTypes.size() > 0;
+        boolean searchResearchPhases = researchPhases != null && researchPhases.size() > 0;
+        boolean searchPeople = people != null && people.size() > 0;
+        boolean searchRoleTypes = searchPeople && (roleTypes != null && roleTypes.size() > 0);
+        boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
+
+        ArrayList<SqlStatement> statements = new ArrayList<>();
+        List<Boolean> searchConditions = new ArrayList<>();
+
+        statements.add(new SqlStatement("INNER JOIN content_content_type ON content_content_type.content_id=content.id",
+                searchContentTypes));
+
+        statements.add(new SqlStatement("INNER JOIN content_research_phase ON content_research_phase.content_id=content.id",
+                searchResearchPhases));
+
+        statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.content_id=content.id",
+                searchPeople));
+
+        statements.add(new SqlStatement("INNER JOIN content_org_unit ON content_org_unit.content_id=content.id",
+                searchOrgUnits));
+
+        statements.add(new SqlStatement("WHERE",searchSearchText || searchContentTypes || searchResearchPhases || searchPeople || searchOrgUnits));
+
+        searchConditions.add(searchSearchText);
+        statements.add(new SqlStatement(CONTENT_MATCH_SQL,
+                searchSearchText,
+                new SqlParameter<>("search_text", searchText)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentTypes));
+
+        searchConditions.add(searchContentTypes);
+        statements.add(new SqlStatement("content_content_type.content_type_id IN :content_types",
+                searchContentTypes,
+                new SqlParameter<>("content_types", contentTypes)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchResearchPhases));
+
+        searchConditions.add(searchResearchPhases);
+        statements.add(new SqlStatement("content_research_phase.research_phase_id IN :research_phases",
+                searchResearchPhases,
+                new SqlParameter<>("research_phases", researchPhases)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchPeople));
+
+        searchConditions.add(searchPeople);
+        statements.add(new SqlStatement("person_content_role.person_id IN :people",
+                searchPeople,
+                new SqlParameter<>("people", people)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchRoleTypes));
+
+        searchConditions.add(searchRoleTypes);
+        statements.add(new SqlStatement("person_content_role.role_type_id IN :role_types",
+                searchRoleTypes,
+                new SqlParameter<>("role_types", roleTypes)));
+
+        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
+
+        searchConditions.add(searchOrgUnits);
+        statements.add(new SqlStatement("content_org_unit.org_unit_id IN :org_units",
+                searchOrgUnits,
+                new SqlParameter<>("org_units", orgUnits)));
+
+        return statements;
+    }
+
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content")
     @ApiOperation(value = "search for content items")
@@ -56,12 +127,6 @@ public class ContentController extends AbstractController {
 
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
-        boolean searchContentTypes = contentTypes != null && contentTypes.size() > 0;
-        boolean searchResearchPhases = researchPhases != null && researchPhases.size() > 0;
-        boolean searchPeople = people != null && people.size() > 0;
-        boolean searchRoleTypes = searchPeople && (roleTypes != null && roleTypes.size() > 0);
-        boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
-        List<Boolean> searchConditions = new ArrayList<>();
 
         boolean orderByRelevance = true;
         if(orderBy != null) {
@@ -76,61 +141,9 @@ public class ContentController extends AbstractController {
         statements.add(countStatement);
         statements.add(selectStatement);
 
-        statements.add(new SqlStatement("INNER JOIN content_content_type ON content_content_type.content_id=content.id",
-                        searchContentTypes));
+        statements.addAll(ContentController.getSearchQuery(contentTypes, researchPhases, people, roleTypes, orgUnits, searchText));
 
-        statements.add(new SqlStatement("INNER JOIN content_research_phase ON content_research_phase.content_id=content.id",
-                        searchResearchPhases));
-
-        statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.content_id=content.id",
-                        searchPeople));
-
-        statements.add(new SqlStatement("INNER JOIN content_org_unit ON content_org_unit.content_id=content.id",
-                        searchOrgUnits));
-
-        statements.add(new SqlStatement("WHERE",searchSearchText || searchContentTypes || searchResearchPhases || searchPeople || searchOrgUnits));
-
-        searchConditions.add(searchSearchText);
-        statements.add(new SqlStatement("MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)",
-                searchSearchText,
-                new SqlParameter<>("search_text", searchTextProcessed)));
-
-        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentTypes));
-
-        searchConditions.add(searchContentTypes);
-        statements.add(new SqlStatement("content_content_type.content_type_id IN :content_types",
-                        searchContentTypes,
-                        new SqlParameter<>("content_types", contentTypes)));
-
-        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchResearchPhases));
-
-        searchConditions.add(searchResearchPhases);
-        statements.add(new SqlStatement("content_research_phase.research_phase_id IN :research_phases",
-                        searchResearchPhases,
-                        new SqlParameter<>("research_phases", researchPhases)));
-
-        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchPeople));
-
-        searchConditions.add(searchPeople);
-        statements.add(new SqlStatement("person_content_role.person_id IN :people",
-                        searchPeople,
-                        new SqlParameter<>("people", people)));
-
-        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchRoleTypes));
-
-        searchConditions.add(searchRoleTypes);
-        statements.add(new SqlStatement("person_content_role.role_type_id IN :role_types",
-                searchRoleTypes,
-                new SqlParameter<>("role_types", roleTypes)));
-
-        statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
-
-        searchConditions.add(searchOrgUnits);
-        statements.add(new SqlStatement("content_org_unit.org_unit_id IN :org_units",
-                        searchOrgUnits,
-                        new SqlParameter<>("org_units", orgUnits)));
-
-        statements.add(new SqlStatement("ORDER BY MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE) DESC",
+        statements.add(new SqlStatement("ORDER BY " + CONTENT_MATCH_SQL + " DESC",
                 searchSearchText && orderByRelevance));
 
         statements.add(new SqlStatement("ORDER BY content.name ASC",
@@ -143,12 +156,12 @@ public class ContentController extends AbstractController {
         statements.add(paginationStatement);
 
         // Create native queries and set parameters
-        Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, Content.class);
+        Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, Content.class, null);
 
         countStatement.setExecute(true);
         selectStatement.setExecute(false);
         paginationStatement.setExecute(false);
-        Query contentCountQuery = SqlQuery.generate(entityManager, statements, null);
+        Query contentCountQuery = SqlQuery.generate(entityManager, statements, null, null);
 
         // Get data and return results
         List<Content> paginatedResults = contentPaginatedQuery.getResultList();

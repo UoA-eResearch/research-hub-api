@@ -41,43 +41,18 @@ public class PersonController extends AbstractController {
         super();
     }
 
-    private static String PERSON_MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
+    public static String PERSON_MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
 
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.GET, value = "/person")
-    @ApiOperation(value = "search for people")
-    public ResponseEntity<String> getPerson(@RequestParam Integer page,
-                                            @RequestParam Integer size,
-                                            @RequestParam(required = false) String orderBy,
-                                            @RequestParam(required = false) List<Integer> orgUnits,
-                                            @RequestParam(required = false) List<Integer> contentItems,
-                                            @RequestParam(required = false) List<Integer> roleTypes,
-                                            @RequestParam(required = false) String searchText) {
 
-        // Make sure pages greater than 0 and page sizes at least 1
-        page = page < 0 ? 0 : page;
-        size = size < 1 ? 1 : size;
 
-        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
+    public static ArrayList<SqlStatement> getSearchQuery(List<Integer> orgUnits, List<Integer> contentItems, List<Integer> roleTypes, String searchText) {
+        boolean searchSearchText = !searchText.equals("");
+        List<Boolean> searchConditions = new ArrayList<>();
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
-        boolean searchSearchText = !searchTextProcessed.equals("");
         boolean searchContentItems = contentItems != null && contentItems.size() > 0;
         boolean searchRoleTypes = roleTypes != null && roleTypes.size() > 0;
-        List<Boolean> searchConditions = new ArrayList<>();
-
-        boolean orderByRelevance = true;
-        if(orderBy != null) {
-            orderByRelevance = orderBy.equals("relevance");
-        }
 
         ArrayList<SqlStatement> statements = new ArrayList<>();
-
-        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM person", false);
-        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT person.* FROM person", true);
-
-        statements.add(countStatement);
-        statements.add(selectStatement);
-
         statements.add(new SqlStatement("INNER JOIN person_content_role ON person_content_role.person_id=person.id",
                 searchContentItems || searchRoleTypes));
 
@@ -89,7 +64,7 @@ public class PersonController extends AbstractController {
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement(PERSON_MATCH_SQL,
                 searchSearchText,
-                new SqlParameter<>("search_text", searchTextProcessed)));
+                new SqlParameter<>("search_text", searchText)));
 
         statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
 
@@ -111,6 +86,41 @@ public class PersonController extends AbstractController {
         statements.add(new SqlStatement("person_content_role.role_type_id IN :role_types",
                 searchRoleTypes,
                 new SqlParameter<>("role_types", roleTypes)));
+        return statements;
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/person")
+    @ApiOperation(value = "search for people")
+    public ResponseEntity<String> getPerson(@RequestParam Integer page,
+                                            @RequestParam Integer size,
+                                            @RequestParam(required = false) String orderBy,
+                                            @RequestParam(required = false) List<Integer> orgUnits,
+                                            @RequestParam(required = false) List<Integer> contentItems,
+                                            @RequestParam(required = false) List<Integer> roleTypes,
+                                            @RequestParam(required = false) String searchText) {
+
+        // Make sure pages greater than 0 and page sizes at least 1
+        page = page < 0 ? 0 : page;
+        size = size < 1 ? 1 : size;
+
+        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
+        boolean searchSearchText = !searchTextProcessed.equals("");
+
+        boolean orderByRelevance = true;
+        if(orderBy != null) {
+            orderByRelevance = orderBy.equals("relevance");
+        }
+
+        ArrayList<SqlStatement> statements = new ArrayList<>();
+
+        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM person", false);
+        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT person.* FROM person", true);
+
+        statements.add(countStatement);
+        statements.add(selectStatement);
+
+        statements.addAll(PersonController.getSearchQuery(orgUnits, contentItems, roleTypes, searchTextProcessed));
 
         statements.add(new SqlStatement("ORDER BY " + PERSON_MATCH_SQL + " DESC",
                 searchSearchText && orderByRelevance));
@@ -124,12 +134,12 @@ public class PersonController extends AbstractController {
                 new SqlParameter<>("offset", page * size));
 
         // Create native queries and set parameters
-        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Person.class);
+        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Person.class, null);
 
         countStatement.setExecute(true);
         selectStatement.setExecute(false);
         paginationStatement.setExecute(false);
-        Query personCountQuery = SqlQuery.generate(entityManager, statements, null);
+        Query personCountQuery = SqlQuery.generate(entityManager, statements, null, null);
 
         // Get data and return results
         List<Person> paginatedResults = personPaginatedQuery.getResultList();

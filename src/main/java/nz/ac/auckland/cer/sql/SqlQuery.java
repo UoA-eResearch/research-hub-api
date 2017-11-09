@@ -23,7 +23,7 @@ public class SqlQuery {
         return processed;
     }
 
-    public static Query generate(EntityManager entityManager, ArrayList<SqlStatement> statements, Class resultClass) {
+    public static Query generate(EntityManager entityManager, ArrayList<SqlStatement> statements, Class resultClass, String resultSetMapping) {
         // Create SQL String
         StringBuilder sqlStringBuilder = new StringBuilder();
 
@@ -41,6 +41,8 @@ public class SqlQuery {
 
         if(resultClass != null) {
             query = entityManager.createNativeQuery(sqlString, resultClass);
+        } else if (resultSetMapping != null) {
+            query = entityManager.createNativeQuery(sqlString, resultSetMapping);
         } else {
             query = entityManager.createNativeQuery(sqlString);
         }

@@ -7,13 +7,33 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+
 @Entity
 @JsonFilter(Content.ENTITY_NAME)
+@SqlResultSetMapping(
+    name="SearchResult",
+    classes={
+            @ConstructorResult(
+                    targetClass=SearchResult.class,
+                    columns={
+                            @ColumnResult(name="type"),
+                            @ColumnResult(name="id", type=Integer.class),
+                            @ColumnResult(name="title"),
+                            @ColumnResult(name="subtitle"),
+                            @ColumnResult(name="image"),
+                            @ColumnResult(name="relevance", type=Float.class)
+                    }
+            )
+    }
+)
 public class Content {
+
+
+
     public static final String ENTITY_NAME = "Content";
     public static final String[] DETAILS = new String[] {
             "webpages", "keywords", "orgUnits", "researchPhases", "people", "policies",
-            "similarContentItems", "actionableInfo", "additionalInfo", "callToAction", "description", "guideCategories"
+            "similarContentItems", "actionableInfo", "additionalInfo", "action", "description", "guideCategories"
     };
 
     @Id
@@ -25,7 +45,7 @@ public class Content {
     private String description;
     private String actionableInfo;
     private String additionalInfo;
-    private String callToAction;
+    private String action;
     private String image;
 
     @Column(name = "created", insertable = false, updatable = false) // Makes sure that the database updates the value automatically
@@ -35,6 +55,11 @@ public class Content {
     private LocalDateTime updated;
 
     private LocalDateTime audited;
+
+    @ManyToOne
+    @JoinColumn(name = "action_type_id")
+    @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    private ActionType actionType;
 
     // One to many
     @JsonFilter("webpages")
@@ -103,6 +128,14 @@ public class Content {
         this.id = id;
     }
 
+    public ActionType getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(ActionType actionType) {
+        this.actionType = actionType;
+    }
+
     public String getName() {
         return name;
     }
@@ -151,12 +184,12 @@ public class Content {
         this.image = image;
     }
 
-    public String getCallToAction() {
-        return callToAction;
+    public String getAction() {
+        return action;
     }
 
-    public void setCallToAction(String callToAction) {
-        this.callToAction = callToAction;
+    public void setAction(String action) {
+        this.action = action;
     }
 
     public LocalDateTime getCreated() {
