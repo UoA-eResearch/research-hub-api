@@ -11,16 +11,17 @@ import java.util.Set;
 @Entity
 @JsonFilter(Content.ENTITY_NAME)
 @SqlResultSetMapping(
-    name="SearchResult",
+    name="ListItem",
     classes={
             @ConstructorResult(
-                    targetClass=SearchResult.class,
+                    targetClass=ListItem.class,
                     columns={
                             @ColumnResult(name="type"),
                             @ColumnResult(name="id", type=Integer.class),
                             @ColumnResult(name="title"),
                             @ColumnResult(name="subtitle"),
                             @ColumnResult(name="image"),
+                            @ColumnResult(name="url"),
                             @ColumnResult(name="relevance", type=Float.class)
                     }
             )

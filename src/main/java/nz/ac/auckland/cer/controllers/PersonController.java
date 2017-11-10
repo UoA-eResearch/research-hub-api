@@ -42,8 +42,7 @@ public class PersonController extends AbstractController {
     }
 
     public static String PERSON_MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
-
-
+    public static String PERSON_SELECT_SQL = "SELECT DISTINCT 'person' AS 'type', id, CONCAT(first_name, ' ', last_name) AS title, job_title AS 'subtitle', image, 'blank' AS 'url', " + PersonController.PERSON_MATCH_SQL +" AS relevance FROM person";
 
     public static ArrayList<SqlStatement> getSearchQuery(List<Integer> orgUnits, List<Integer> contentItems, List<Integer> roleTypes, String searchText) {
         boolean searchSearchText = !searchText.equals("");
@@ -92,7 +91,7 @@ public class PersonController extends AbstractController {
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person")
     @ApiOperation(value = "search for people")
-    public ResponseEntity<String> getPerson(@RequestParam Integer page,
+    public Page<ListItem> getPerson(@RequestParam Integer page,
                                             @RequestParam Integer size,
                                             @RequestParam(required = false) String orderBy,
                                             @RequestParam(required = false) List<Integer> orgUnits,
@@ -115,17 +114,17 @@ public class PersonController extends AbstractController {
         ArrayList<SqlStatement> statements = new ArrayList<>();
 
         SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM person", false);
-        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT person.* FROM person", true);
+        SqlStatement selectStatement = new SqlStatement(PERSON_SELECT_SQL, true, new SqlParameter<>("search_text", searchTextProcessed));
 
         statements.add(countStatement);
         statements.add(selectStatement);
 
         statements.addAll(PersonController.getSearchQuery(orgUnits, contentItems, roleTypes, searchTextProcessed));
 
-        statements.add(new SqlStatement("ORDER BY " + PERSON_MATCH_SQL + " DESC",
+        statements.add(new SqlStatement("ORDER BY relevance DESC",
                 searchSearchText && orderByRelevance));
 
-        statements.add(new SqlStatement("ORDER BY person.first_name, person.last_name ASC",
+        statements.add(new SqlStatement("ORDER BY title ASC",
                 !searchSearchText || !orderByRelevance));
 
         SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
@@ -134,7 +133,7 @@ public class PersonController extends AbstractController {
                 new SqlParameter<>("offset", page * size));
 
         // Create native queries and set parameters
-        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, Person.class, null);
+        Query personPaginatedQuery = SqlQuery.generate(entityManager, statements, null, "ListItem");
 
         countStatement.setExecute(true);
         selectStatement.setExecute(false);
@@ -142,13 +141,11 @@ public class PersonController extends AbstractController {
         Query personCountQuery = SqlQuery.generate(entityManager, statements, null, null);
 
         // Get data and return results
-        List<Person> paginatedResults = personPaginatedQuery.getResultList();
+        List<ListItem> paginatedResults = personPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)personCountQuery.getSingleResult()).intValue();
-        Page<Person> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
+        Page<ListItem> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
 
-        String result = this.getFilteredResults(hubPage, Person.ENTITY_NAME, Person.DETAILS);
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return hubPage;
     }
 
     @CrossOrigin

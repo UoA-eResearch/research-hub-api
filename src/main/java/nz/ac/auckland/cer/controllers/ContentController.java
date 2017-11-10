@@ -37,7 +37,25 @@ public class ContentController extends AbstractController {
         super();
     }
 
+
+
     public static String CONTENT_MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
+    public static String CONTENT_SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', " + ContentController.CONTENT_MATCH_SQL +" AS relevance FROM content";
+
+
+    public static String getSelectSql(boolean searchSearchText) {
+        String select = "'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', ";
+
+        if (searchSearchText) {
+            select += ContentController.CONTENT_MATCH_SQL;
+        } else {
+            select += "0.0";
+        }
+
+        select += " AS relevance";
+
+        return select;
+    }
 
     public static ArrayList<SqlStatement> getSearchQuery(List<Integer> contentTypes, List<Integer> researchPhases,
                                                          List<Integer> people, List<Integer> roleTypes, List<Integer> orgUnits, String searchText) {
@@ -135,18 +153,18 @@ public class ContentController extends AbstractController {
 
         ArrayList<SqlStatement> statements = new ArrayList<>();
 
-        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(*) FROM content", false);
-        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT content.* FROM content", true);
+        SqlStatement countStatement = new SqlStatement("SELECT DISTINCT COUNT(" + ContentController.getSelectSql(searchSearchText) + ") FROM content", false);
+        SqlStatement selectStatement = new SqlStatement("SELECT DISTINCT " + ContentController.getSelectSql(searchSearchText) + " FROM content", true);
 
         statements.add(countStatement);
         statements.add(selectStatement);
 
-        statements.addAll(ContentController.getSearchQuery(contentTypes, researchPhases, people, roleTypes, orgUnits, searchText));
+        statements.addAll(ContentController.getSearchQuery(contentTypes, researchPhases, people, roleTypes, orgUnits, searchTextProcessed));
 
-        statements.add(new SqlStatement("ORDER BY " + CONTENT_MATCH_SQL + " DESC",
+        statements.add(new SqlStatement("ORDER BY relevance DESC",
                 searchSearchText && orderByRelevance));
 
-        statements.add(new SqlStatement("ORDER BY content.name ASC",
+        statements.add(new SqlStatement("ORDER BY title ASC",
                 !searchSearchText || !orderByRelevance));
 
         SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
@@ -156,7 +174,7 @@ public class ContentController extends AbstractController {
         statements.add(paginationStatement);
 
         // Create native queries and set parameters
-        Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, Content.class, null);
+        Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, null, "ListItem");
 
         countStatement.setExecute(true);
         selectStatement.setExecute(false);
@@ -164,9 +182,9 @@ public class ContentController extends AbstractController {
         Query contentCountQuery = SqlQuery.generate(entityManager, statements, null, null);
 
         // Get data and return results
-        List<Content> paginatedResults = contentPaginatedQuery.getResultList();
+        List<ListItem> paginatedResults = contentPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
-        Page<Content> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
+        Page<ListItem> hubPage = new Page<>(paginatedResults, totalElements, orderBy, size, page);
         String result = this.getFilteredResults(hubPage, Content.ENTITY_NAME, Content.DETAILS);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
@@ -192,7 +210,7 @@ public class ContentController extends AbstractController {
             SimpleFilterProvider filter = new SimpleFilterProvider();
             filter.setFailOnUnknownId(false);
             filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("webpages",
-                    "keywords", "contentTypes", "researchPhases", "policies", "similarContentItems",
+                    "keywords", "researchPhases", "policies", "similarContentItems",
                     "actionableInfo", "callToAction", "orgUnits", "people"));
             filter.addFilter("guideCategories", SimpleBeanPropertyFilter.serializeAllExcept("contentItems"));
 

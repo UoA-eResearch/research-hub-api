@@ -1,25 +1,23 @@
 package nz.ac.auckland.cer.model;
 
-import javax.persistence.ColumnResult;
-import javax.persistence.ConstructorResult;
-import javax.persistence.SqlResultSetMapping;
 
-
-public class SearchResult {
+public class ListItem {
 
     private String type;
     private Integer id;
     private String title;
     private String subtitle;
     private String image;
+    private String url;
     private float relevance;
 
-    public SearchResult(String type, Integer id, String title, String subtitle, String image, float relevance) {
+    public ListItem(String type, Integer id, String title, String subtitle, String image, String url, float relevance) {
         this.type = type;
         this.id = id;
         this.title = title;
         this.subtitle = subtitle;
         this.image = image;
+        this.url = url;
         this.relevance = relevance;
     }
 
@@ -61,6 +59,14 @@ public class SearchResult {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public float getRelevance() {

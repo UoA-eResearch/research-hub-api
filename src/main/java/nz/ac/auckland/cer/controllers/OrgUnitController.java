@@ -34,9 +34,6 @@ public class OrgUnitController extends AbstractController {
     @Autowired
     private OrgUnitRepository orgUnitRepository;
 
-    @Autowired
-    private PersonRepository personRepository;
-
     public OrgUnitController() {
         super();
     }
