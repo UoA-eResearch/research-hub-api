@@ -39,7 +39,7 @@ public class GuideCategoryController extends AbstractController {
             results = objectMapper.writer(filter).writeValueAsString(item);
         }
         catch (JsonProcessingException e) {
-
+            System.out.println(e.toString());
         }
 
         return new ResponseEntity<>(results, HttpStatus.OK);

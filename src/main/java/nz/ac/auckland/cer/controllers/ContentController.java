@@ -153,7 +153,7 @@ public class ContentController extends AbstractSearchController {
                 results = objectMapper.writer(filter).writeValueAsString(item);
             }
             catch (JsonProcessingException e) {
-
+                System.out.println(e.toString());
             }
         } else {
             results = this.getFilteredResults(item, Content.ENTITY_NAME, "similarContentItems", "guideCategories");

@@ -29,7 +29,7 @@ public abstract class AbstractController {
             result = objectMapper.writer(filter).writeValueAsString(rawResults);
         }
         catch (JsonProcessingException e) {
-            int x = 1;
+            System.out.println(e.toString());
         }
 
         return result;
