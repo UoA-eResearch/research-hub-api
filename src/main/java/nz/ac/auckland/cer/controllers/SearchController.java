@@ -15,11 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-//import static nz.ac.auckland.cer.controllers.ContentController.CONTENT_SELECT_SQL;
-import static nz.ac.auckland.cer.controllers.ContentController.CONTENT_SELECT_SQL;
-import static nz.ac.auckland.cer.controllers.PersonController.PERSON_SELECT_SQL;
-import static nz.ac.auckland.cer.controllers.PolicyController.POLICY_SELECT_SQL;
-
 
 @RestController
 @Api(tags={"Search"}, description="Site wide search")
@@ -32,22 +27,20 @@ public class SearchController extends AbstractController {
         super();
     }
 
-
-
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ApiOperation(value = "search for content items")
     public Page<ListItem> getSearchResults(@RequestParam Integer page,
                                            @RequestParam Integer size,
                                            @RequestParam(required = false) String orderBy,
+                                           @RequestParam(required = false) String searchText,
                                            @RequestParam(required = false) String objectType,
                                            @RequestParam(required = false) List<Integer> people,
                                            @RequestParam(required = false) List<Integer> orgUnits,
                                            @RequestParam(required = false) List<Integer> researchPhases,
                                            @RequestParam(required = false) List<Integer> contentItems,
                                            @RequestParam(required = false) List<Integer> roleTypes,
-                                           @RequestParam(required = false) List<Integer> contentTypes,
-                                           @RequestParam(required = false) String searchText) {
+                                           @RequestParam(required = false) List<Integer> contentTypes) {
 
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
@@ -58,7 +51,21 @@ public class SearchController extends AbstractController {
         }
 
         List<String> objectTypes = Arrays.asList("content", "person", "policy");
-        boolean searchAll = objectType == null || !objectTypes.contains(objectType);
+
+        boolean searchAllTypes = true;
+        boolean restrictToContent = false;
+        boolean restrictToPerson = false;
+        boolean restrictToPolicy = false;
+
+        if (objectType != null && objectTypes.contains(objectType)) {
+            restrictToContent = objectType.equals("content");
+            restrictToPerson = objectType.equals("person");
+            restrictToPolicy = objectType.equals("policy");
+            searchAllTypes = false;
+        }
+
+        boolean excludePeople = (people != null && people.size() > 0) || (researchPhases != null && researchPhases.size() > 0);
+        boolean excludePolicies = (people != null && people.size() > 0) || (researchPhases != null && researchPhases.size() > 0) || (orgUnits != null && orgUnits.size() > 0);
 
         ArrayList<SqlStatement> statements = new ArrayList<>();
 
@@ -69,23 +76,23 @@ public class SearchController extends AbstractController {
 
         List<Boolean> searchConditions = new ArrayList<>();
 
-        if (searchAll || objectType.equals("content")) {
-            statements.add(new SqlStatement(CONTENT_SELECT_SQL, true, new SqlParameter<>("search_text", searchTextProcessed))); //"SELECT DISTINCT " + ContentController.getSelectSql(searchSearchText) + " FROM content"
-            statements.addAll(ContentController.getSearchQuery(contentTypes, researchPhases, people, roleTypes, orgUnits, searchTextProcessed));
+        if (searchAllTypes || restrictToContent) {
+            statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, ContentController.SELECT_SQL, ContentController.MATCH_SQL), true));
+            statements.addAll(ContentController.getSearchStatements(searchText, contentTypes, researchPhases, people, roleTypes, orgUnits));
             searchConditions.add(true);
         }
 
-        if (searchAll || objectType.equals("person")) {
+        if ((searchAllTypes|| restrictToPerson) && !excludePeople) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
-            statements.add(new SqlStatement(PERSON_SELECT_SQL, true, new SqlParameter<>("search_text", searchTextProcessed)));
-            statements.addAll(PersonController.getSearchQuery(orgUnits, contentItems, roleTypes, searchTextProcessed));
+            statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PersonController.SELECT_SQL, PersonController.MATCH_SQL), true));
+            statements.addAll(PersonController.getSearchStatements(searchText, orgUnits, contentItems, roleTypes));
             searchConditions.add(true);
         }
 
-        if (searchAll || objectType.equals("policy")) {
+        if ((searchAllTypes|| restrictToPolicy) && !excludePolicies) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
-            statements.add(new SqlStatement(POLICY_SELECT_SQL, true, new SqlParameter<>("search_text", searchTextProcessed)));
-            statements.addAll(PolicyController.getSearchQuery(searchTextProcessed));
+            statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PolicyController.SELECT_SQL, PolicyController.MATCH_SQL), true));
+            statements.addAll(PolicyController.getSearchStatements(searchText));
         }
 
         statements.add(new SqlStatement(") AS sitewide", true));
@@ -109,7 +116,7 @@ public class SearchController extends AbstractController {
         // Get data and return results
         List<ListItem> paginatedResults = contentPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
-        return new Page<ListItem>(paginatedResults, totalElements, orderBy, size, page);
+        return new Page<>(paginatedResults, totalElements, orderBy, size, page);
     }
 
 }
