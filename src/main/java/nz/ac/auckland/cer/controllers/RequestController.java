@@ -1,75 +1,119 @@
 package nz.ac.auckland.cer.controllers;
 
-import nz.ac.auckland.cer.model.requests.DataConsultation;
+
 import nz.ac.auckland.cer.model.requests.VMConsultation;
+import okhttp3.*;
+import okhttp3.ResponseBody;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.language.DefaultTemplateLexer;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.ByteArrayOutputStream;
-
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.PumpStreamHandler;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 @RestController
 public class RequestController {
 
-    private static String exec(String command) throws Exception {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        CommandLine commandline = CommandLine.parse(command);
-        DefaultExecutor defaultExecutor = new DefaultExecutor();
-        PumpStreamHandler pumpStreamHandler = new PumpStreamHandler(byteArrayOutputStream);
-        defaultExecutor.setStreamHandler(pumpStreamHandler);
-        defaultExecutor.execute(commandline);
-        return (byteArrayOutputStream.toString());
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private OkHttpClient.Builder builder;
+    private OkHttpClient client;
+
+    @Value("${service-now.base-url}")
+    private String baseUrl;
+
+    @Value("${service-now.user}")
+    private String user;
+
+    @Value("${service-now.password}")
+    private String password;
+
+    @Value("${service-now.cer.vm.assignment-group-id}")
+    private String cerVmAssignmentGroupId;
+
+    @Value("${service-now.cer.vm.business-service-id}")
+    private String cerVmBusinessServiceId;
+
+    @Value("${service-now.cer.vm.watch-list}")
+    private String[] cerVmWatchList;
+
+    RequestController() {
+        builder = new OkHttpClient.Builder();
+        builder.authenticator(new Authenticator() {
+            @Override
+            public Request authenticate(Route route, Response response) throws IOException {
+                String credential = Credentials.basic(user, password);
+                return response.request().newBuilder().header("Authorization", credential).build();
+            }
+        });
+        client = builder.build();
     }
+
+    private ResponseBody post(String url, String json) throws IOException {
+        okhttp3.RequestBody body = okhttp3.RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        Response response = client.newCall(request).execute();
+        return response.body();
+    }
+
+    /*
+     * Create ServiceNow VM Consultation ticket
+     */
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
     String createVMConsultationRequest(@RequestBody VMConsultation vmConsultation) {
-        // Create ServiceNow VM Consultation ticket
-        String output = "";
+        String requestorUpi = "jdip004"; // TODO replace with upi from Shiboleth headers
+        String url = baseUrl + "/api/now/table/u_request";
+        JSONObject response = new JSONObject();
+
         try {
-            String autoCerDir = System.getenv("AUTOCER_DIR");
-            String requestorUpi = "jdip004"; // TODO replace with upi from Shiboleth headers
-            String command = String.format("python3 %s/bin/create_vm_consultation_sn_ticket.py -r %s -d %s -t %s -c '%s'",
-                    autoCerDir, requestorUpi, vmConsultation.getDate(),
-                    vmConsultation.getTime(), vmConsultation.getComments());
-            output = exec(command);
-        } catch (Exception e) {
-            String cause = e.getMessage();
-            if (cause.equals("bash: python3: command not found")) {
-                System.out.println("Error: No python interpreter found.");
+            // Create template
+            String templatePath = getClass().getClassLoader().getResource("servicenow_consultation_vm.tpl").getFile();
+            String template = new String(Files.readAllBytes(Paths.get(templatePath)));
+            StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
+            ticketComments.setAttribute("requestorUpi", requestorUpi);
+            ticketComments.setAttribute("time", vmConsultation.getDate());
+            ticketComments.setAttribute("date", vmConsultation.getTime());
+            ticketComments.setAttribute("comments", vmConsultation.getComments());
+
+            // Create ticket body
+            JSONObject body = new JSONObject()
+                    .put("u_requestor", requestorUpi)
+                    .put("assignment_group", cerVmAssignmentGroupId)
+                    .put("category", "Research IT")
+                    .put("subcategory", "Research Computing Platforms")
+                    .put("u_business_service", cerVmBusinessServiceId)
+                    .put("short_description", "Research VM consultation request: " + requestorUpi)
+                    .put("comments", ticketComments.toString())
+                    .put("watch_list", String.join(",", cerVmWatchList));
+
+            try {
+                // Submit ticket
+                ResponseBody responseBody = post(url, body.toString());
+                JSONObject serviceNowResponse = new JSONObject(responseBody.string()).getJSONObject("result");
+                response.put("ticketNumber", serviceNowResponse.getString("number"));
+                response.put("requestUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
+            } catch (IOException e) {
+                response.put("error", "There was an error communicating with ServiceNow");
+                System.out.println(e.getMessage());
+            } catch (JSONException e) {
+                response.put("error", "There was an error processing the ServiceNow response");
+                System.out.println(e.getMessage());
             }
+        } catch (IOException e) {
+            response.put("error", "There was an error reading the ticket template");
+            System.out.println(e.getMessage());
         }
 
-        return output;
+        return response.toString();
     }
-
-    @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST, value = "/dataConsultation/create")
-    String createDataConsultationRequest(@RequestBody DataConsultation dataConsultation) {
-        // Create ServiceNow Data Consultation ticket
-        String output = "";
-        try {
-            String autoCerDir = System.getenv("AUTOCER_DIR");
-            String command = String.format("python3 %s/bin/create_data_consultation_sn_ticket.py --requestor_upi %s --researcher_upi %s --new_or_existing_storage %s --project_title \"%s\" --project_abstract \"%s\" --project_end_date %s --field_of_research \"%s\" --requirements \"%s\" --short_name %s --upis %s --access_rights %s --data_owner %s --data_contact %s --data_this_year %s --data_next_year %s",
-                    autoCerDir, dataConsultation.getRequestorUpi(), dataConsultation.getResearcherUpi(),
-                    dataConsultation.getNewOrExistingStorage(), dataConsultation.getProjectTitle(),
-                    dataConsultation.getProjectAbstract(), dataConsultation.getProjectEndDate(),
-                    dataConsultation.getFieldOfResearch(), dataConsultation.getRequirements(), dataConsultation.getShortName(),
-                    String.join(",", dataConsultation.getUpis()), String.join(",", dataConsultation.getAccessRights()),
-                    dataConsultation.getDataOwner(), dataConsultation.getDataContact(), dataConsultation.getDataThisYear(),
-                    dataConsultation.getDataNextYear());
-            output = exec(command);
-        } catch (Exception e) {
-            String cause = e.getMessage();
-            if (cause.equals("bash: python3: command not found")) {
-                System.out.println("Error: No python interpreter found.");
-            }
-        }
-
-        return output;
-    }
-
 }
