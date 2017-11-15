@@ -3,31 +3,12 @@ package nz.ac.auckland.cer.model.requests;
 
 public class VMConsultation {
 
-    private String requestorUpi;
-    private String researcherUpi;
     private String date;
     private String time;
-    private String location;
     private String comments;
 
     public VMConsultation() {
 
-    }
-
-    public String getRequestorUpi() {
-        return requestorUpi;
-    }
-
-    public void setRequestorUpi(String requestorUpi) {
-        this.requestorUpi = requestorUpi;
-    }
-
-    public String getResearcherUpi() {
-        return researcherUpi;
-    }
-
-    public void setResearcherUpi(String researcherUpi) {
-        this.researcherUpi = researcherUpi;
     }
 
     public String getDate() {
@@ -44,14 +25,6 @@ public class VMConsultation {
 
     public void setTime(String time) {
         this.time = time;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
     }
 
     public String getComments() {

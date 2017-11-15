@@ -2,10 +2,7 @@ package nz.ac.auckland.cer.controllers;
 
 import nz.ac.auckland.cer.model.requests.DataConsultation;
 import nz.ac.auckland.cer.model.requests.VMConsultation;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 
@@ -27,15 +24,17 @@ public class RequestController {
         return (byteArrayOutputStream.toString());
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
     String createVMConsultationRequest(@RequestBody VMConsultation vmConsultation) {
         // Create ServiceNow VM Consultation ticket
         String output = "";
         try {
             String autoCerDir = System.getenv("AUTOCER_DIR");
-            String command = String.format("python3 %s/bin/create_vm_consultation_sn_ticket.py -req %s -res %s -d %s -t %s -l %s -c '%s'",
-                    autoCerDir, vmConsultation.getRequestorUpi(), vmConsultation.getResearcherUpi(), vmConsultation.getDate(),
-                    vmConsultation.getTime(), vmConsultation.getLocation(), vmConsultation.getComments());
+            String requestorUpi = "jdip004"; // TODO replace with upi from Shiboleth headers
+            String command = String.format("python3 %s/bin/create_vm_consultation_sn_ticket.py -r %s -d %s -t %s -c '%s'",
+                    autoCerDir, requestorUpi, vmConsultation.getDate(),
+                    vmConsultation.getTime(), vmConsultation.getComments());
             output = exec(command);
         } catch (Exception e) {
             String cause = e.getMessage();
@@ -47,6 +46,7 @@ public class RequestController {
         return output;
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/dataConsultation/create")
     String createDataConsultationRequest(@RequestBody DataConsultation dataConsultation) {
         // Create ServiceNow Data Consultation ticket
