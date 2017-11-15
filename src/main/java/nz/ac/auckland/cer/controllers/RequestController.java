@@ -101,7 +101,7 @@ public class RequestController {
                 ResponseBody responseBody = post(url, body.toString());
                 JSONObject serviceNowResponse = new JSONObject(responseBody.string()).getJSONObject("result");
                 response.put("ticketNumber", serviceNowResponse.getString("number"));
-                response.put("requestUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
+                response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
             } catch (IOException e) {
                 response.put("error", "There was an error communicating with ServiceNow");
                 System.out.println(e.getMessage());
