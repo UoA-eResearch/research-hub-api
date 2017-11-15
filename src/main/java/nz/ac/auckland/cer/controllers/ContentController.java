@@ -29,7 +29,7 @@ public class ContentController extends AbstractSearchController {
     @Autowired
     private ContentRepository contentRepository;
 
-    public static String SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', match_sql * 3.0 AS relevance FROM content";
+    public static String SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', match_sql * 100.0 AS relevance FROM content";
     public static String MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
 
     public ContentController() {

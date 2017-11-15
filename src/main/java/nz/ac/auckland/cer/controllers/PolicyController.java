@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class PolicyController extends AbstractSearchController {
 
     public static String MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
-    public static String SELECT_SQL = "SELECT DISTINCT 'policy' AS 'type', id, name AS 'title', description AS 'subtitle', 'blank' AS 'image', url AS 'url', match_sql as relevance FROM policy";
+    public static String SELECT_SQL = "SELECT DISTINCT 'policy' AS 'type', id, name AS 'title', description AS 'subtitle', image, url AS 'url', match_sql as relevance FROM policy";
 
     @Autowired
     private PolicyRepository policyRepository;
