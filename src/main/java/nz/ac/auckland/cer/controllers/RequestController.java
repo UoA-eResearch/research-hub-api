@@ -9,12 +9,13 @@ import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 
 
 @RestController
@@ -76,9 +77,9 @@ public class RequestController {
         JSONObject response = new JSONObject();
 
         try {
-            // Create template
-            String templatePath = getClass().getClassLoader().getResource("servicenow_consultation_vm.tpl").getFile();
-            String template = new String(Files.readAllBytes(Paths.get(templatePath)));
+            // Generate comments based on template
+            ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
+            String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
             StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
             ticketComments.setAttribute("requestorUpi", requestorUpi);
             ticketComments.setAttribute("time", vmConsultation.getDate());
