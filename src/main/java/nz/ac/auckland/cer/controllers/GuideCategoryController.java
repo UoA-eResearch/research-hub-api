@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import nz.ac.auckland.cer.model.Content;
 import nz.ac.auckland.cer.model.GuideCategory;
 import nz.ac.auckland.cer.repository.GuideCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +30,8 @@ public class GuideCategoryController extends AbstractController {
         String results = "";
         SimpleFilterProvider filter = new SimpleFilterProvider();
         filter.setFailOnUnknownId(false);
-        filter.addFilter(GuideCategory.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("content"));
-        filter.addFilter("contentItems", SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
+        filter.addFilter("content", SimpleBeanPropertyFilter.filterOutAllExcept("id", "name"));
+        filter.addFilter("contentItems", SimpleBeanPropertyFilter.filterOutAllExcept("id", "name", "summary", "image"));
 
         try
         {
