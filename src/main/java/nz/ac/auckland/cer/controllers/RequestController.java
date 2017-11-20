@@ -71,48 +71,52 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    String createVMConsultationRequest(@RequestBody VMConsultation vmConsultation) {
-        String requestorUpi = "jdip004"; // TODO replace with upi from Shiboleth headers
+    String createVMConsultationRequest(@RequestHeader(value="eppn", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) {
         String url = baseUrl + "/api/now/table/u_request";
         JSONObject response = new JSONObject();
 
-        try {
-            // Generate comments based on template
-            ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
-            String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
-            StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
-            ticketComments.setAttribute("requestorUpi", requestorUpi);
-            ticketComments.setAttribute("time", vmConsultation.getDate());
-            ticketComments.setAttribute("date", vmConsultation.getTime());
-            ticketComments.setAttribute("comments", vmConsultation.getComments());
-
-            // Create ticket body
-            JSONObject body = new JSONObject()
-                    .put("u_requestor", requestorUpi)
-                    .put("assignment_group", cerVmAssignmentGroupId)
-                    .put("category", "Research IT")
-                    .put("subcategory", "Research Computing Platforms")
-                    .put("u_business_service", cerVmBusinessServiceId)
-                    .put("short_description", "Research VM consultation request: " + requestorUpi)
-                    .put("comments", ticketComments.toString())
-                    .put("watch_list", String.join(",", cerVmWatchList));
-
+        if (requestorUpi != null) {
             try {
-                // Submit ticket
-                ResponseBody responseBody = post(url, body.toString());
-                JSONObject serviceNowResponse = new JSONObject(responseBody.string()).getJSONObject("result");
-                response.put("ticketNumber", serviceNowResponse.getString("number"));
-                response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
+                // Generate comments based on template
+                ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
+                String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
+                StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
+                ticketComments.setAttribute("requestorUpi", requestorUpi);
+                ticketComments.setAttribute("time", vmConsultation.getDate());
+                ticketComments.setAttribute("date", vmConsultation.getTime());
+                ticketComments.setAttribute("comments", vmConsultation.getComments());
+
+                // Create ticket body
+                JSONObject body = new JSONObject()
+                        .put("u_requestor", requestorUpi)
+                        .put("assignment_group", cerVmAssignmentGroupId)
+                        .put("category", "Research IT")
+                        .put("subcategory", "Research Computing Platforms")
+                        .put("u_business_service", cerVmBusinessServiceId)
+                        .put("short_description", "Research VM consultation request: " + requestorUpi)
+                        .put("comments", ticketComments.toString())
+                        .put("watch_list", String.join(",", cerVmWatchList));
+
+                try {
+                    // Submit ticket
+                    ResponseBody responseBody = post(url, body.toString());
+                    JSONObject serviceNowResponse = new JSONObject(responseBody.string()).getJSONObject("result");
+                    response.put("ticketNumber", serviceNowResponse.getString("number"));
+                    response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
+                } catch (IOException e) {
+                    response.put("error", "There was an error communicating with ServiceNow");
+                    System.out.println(e.getMessage());
+                } catch (JSONException e) {
+                    response.put("error", "There was an error processing the ServiceNow response");
+                    System.out.println(e.getMessage());
+                }
             } catch (IOException e) {
-                response.put("error", "There was an error communicating with ServiceNow");
-                System.out.println(e.getMessage());
-            } catch (JSONException e) {
-                response.put("error", "There was an error processing the ServiceNow response");
+                response.put("error", "There was an error reading the ticket template");
                 System.out.println(e.getMessage());
             }
-        } catch (IOException e) {
-            response.put("error", "There was an error reading the ticket template");
-            System.out.println(e.getMessage());
+        } else {
+            response.put("error", "Please supply an eppn in the request header");
+            System.out.println("Please supply an eppn in the request header");
         }
 
         return response.toString();
