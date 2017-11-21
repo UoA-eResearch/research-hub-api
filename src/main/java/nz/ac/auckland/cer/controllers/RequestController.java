@@ -71,7 +71,7 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    String createVMConsultationRequest(@RequestHeader(value="eppn", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) {
+    String createVMConsultationRequest(@RequestAttribute(value="eppn", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) {
         String url = baseUrl + "/api/now/table/u_request";
         JSONObject response = new JSONObject();
 
