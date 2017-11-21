@@ -8,18 +8,23 @@ import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 
 @RestController
 public class RequestController {
+
+    private static final Logger logger = LoggerFactory.getLogger(RequestController.class);
 
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private OkHttpClient.Builder builder;
@@ -71,7 +76,7 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    String createVMConsultationRequest(@RequestAttribute(value="uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) {
+    String createVMConsultationRequest(@RequestAttribute(value="uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation, HttpServletResponse httpServletResponse) {
         String url = baseUrl + "/api/now/table/u_request";
         JSONObject response = new JSONObject();
 
@@ -104,19 +109,21 @@ public class RequestController {
                     response.put("ticketNumber", serviceNowResponse.getString("number"));
                     response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
                 } catch (IOException e) {
-                    response.put("error", "There was an error communicating with ServiceNow");
-                    System.out.println(e.getMessage());
+                    response.put("error", "IOException: there was an error communicating with ServiceNow");
+                    logger.error(e.getMessage());
                 } catch (JSONException e) {
-                    response.put("error", "There was an error processing the ServiceNow response");
-                    System.out.println(e.getMessage());
+                    response.put("error", "JSONException: there was an error parsing the ServiceNow response");
+                    logger.error(e.getMessage());
                 }
             } catch (IOException e) {
                 response.put("error", "There was an error reading the ticket template");
                 System.out.println(e.getMessage());
             }
         } else {
-            response.put("error", "Please supply an eppn in the request header");
-            System.out.println("Please supply an eppn in the request header");
+            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            String message = "User not logged in: 'uid' request attribute not found";
+            logger.error(message);
+            response.put("error", message);
         }
 
         return response.toString();
