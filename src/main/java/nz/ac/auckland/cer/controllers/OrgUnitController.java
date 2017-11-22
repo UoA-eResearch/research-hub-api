@@ -3,16 +3,12 @@ package nz.ac.auckland.cer.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.querydsl.jpa.JPQLQuery;
-import com.querydsl.jpa.hibernate.HibernateQuery;
-import com.querydsl.jpa.impl.JPAQuery;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import nz.ac.auckland.cer.model.*;
-import nz.ac.auckland.cer.repository.ContentRepository;
+import nz.ac.auckland.cer.model.Content;
+import nz.ac.auckland.cer.model.OrgUnit;
+import nz.ac.auckland.cer.model.Person;
 import nz.ac.auckland.cer.repository.OrgUnitRepository;
-import nz.ac.auckland.cer.repository.PersonRepository;
-import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,8 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.*;
-import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 
 @RestController
