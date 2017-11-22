@@ -20,14 +20,12 @@ import java.util.List;
 
 @RestController
 @Api(tags={"Search"}, description="Site wide search")
-public class SearchController extends AbstractController {
+public class SearchController {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    SearchController() {
-        super();
-    }
+    SearchController() {}
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/search")

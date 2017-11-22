@@ -1,6 +1,7 @@
 package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -13,6 +14,7 @@ public class RoleType extends Category {
     public static final String ENTITY_NAME = "RoleType";
 
     @OneToMany(mappedBy="roleType")
+    @JsonIgnore
     private Set<ContentRole> contentRoles;
 
     public RoleType() {

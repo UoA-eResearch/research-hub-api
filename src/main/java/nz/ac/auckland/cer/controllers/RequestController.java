@@ -110,14 +110,14 @@ public class RequestController {
                     response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
                 } catch (IOException e) {
                     response.put("error", "IOException: there was an error communicating with ServiceNow");
-                    logger.error(e.getMessage());
+                    logger.error(e.toString());
                 } catch (JSONException e) {
                     response.put("error", "JSONException: there was an error parsing the ServiceNow response");
-                    logger.error(e.getMessage());
+                    logger.error(e.toString());
                 }
             } catch (IOException e) {
                 response.put("error", "There was an error reading the ticket template");
-                System.out.println(e.getMessage());
+                logger.error(e.toString());
             }
         } else {
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -1,6 +1,7 @@
 package nz.ac.auckland.cer.model;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
@@ -14,6 +15,7 @@ public class ResearchPhase extends Category {
     public static final String ENTITY_NAME = "ResearchPhase";
 
     @ManyToMany(mappedBy = "researchPhases")
+    @JsonIgnore
     private Set<Content> contentItems;
 
     public ResearchPhase() {

@@ -4,11 +4,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import nz.ac.auckland.cer.model.ListItem;
 import nz.ac.auckland.cer.model.Page;
-import nz.ac.auckland.cer.repository.PolicyRepository;
 import nz.ac.auckland.cer.sql.SqlParameter;
 import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -18,18 +16,14 @@ import java.util.ArrayList;
 @Api(tags = {"Person"}, description = "Operations on person")
 public class PolicyController extends AbstractSearchController {
 
-    public static String MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
-    public static String SELECT_SQL = "SELECT DISTINCT 'policy' AS 'type', id, name AS 'title', description AS 'subtitle', image, url AS 'url', match_sql as relevance FROM policy";
-
-    @Autowired
-    private PolicyRepository policyRepository;
+    static String MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
+    static String SELECT_SQL = "SELECT DISTINCT 'policy' AS 'type', id, name AS 'title', description AS 'subtitle', image, url AS 'url', match_sql as relevance FROM policy";
 
     public PolicyController() {
         super(SELECT_SQL, MATCH_SQL);
     }
 
-
-    public static ArrayList<SqlStatement> getSearchStatements(String searchText) {
+    static ArrayList<SqlStatement> getSearchStatements(String searchText) {
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
 

@@ -14,7 +14,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractSearchController extends AbstractController {
+public abstract class AbstractSearchController {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -27,7 +27,15 @@ public abstract class AbstractSearchController extends AbstractController {
         this.matchSql = matchSql;
     }
 
-    public Page<ListItem> getSearchResults(String tableName, Integer page, Integer size, String orderBy, String searchText, ArrayList<SqlStatement> searchStatements) {
+    static String getSelectStatement(boolean searchSearchText, String selectSql, String matchSql) {
+        String replaceWith = "0.0";
+        if (searchSearchText) {
+            replaceWith = matchSql;
+        }
+        return selectSql.replaceFirst("match_sql", replaceWith);
+    }
+
+    Page<ListItem> getSearchResults(String tableName, Integer page, Integer size, String orderBy, String searchText, ArrayList<SqlStatement> searchStatements) {
 
         // Make sure pages greater than 0 and page sizes at least 1
         page = page < 0 ? 0 : page;
@@ -74,13 +82,5 @@ public abstract class AbstractSearchController extends AbstractController {
         List<ListItem> paginatedResults = contentPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
         return new Page<>(paginatedResults, totalElements, orderBy, size, page);
-    }
-
-    public static String getSelectStatement(boolean searchSearchText, String selectSql, String matchSql) {
-        String replaceWith = "0.0";
-        if (searchSearchText) {
-            replaceWith = matchSql;
-        }
-        return selectSql.replaceFirst("match_sql", replaceWith);
     }
 }

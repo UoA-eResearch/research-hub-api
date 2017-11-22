@@ -1,6 +1,7 @@
 package nz.ac.auckland.cer.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
@@ -13,6 +14,8 @@ import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.sql.SqlParameter;
 import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,17 +29,22 @@ import java.util.List;
 @Api(tags={"Content"}, description="Operations on content")
 public class ContentController extends AbstractSearchController {
 
-    @Autowired
+    private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
+
+    private ObjectMapper objectMapper;
     private ContentRepository contentRepository;
 
-    public static String SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', match_sql * 100.0 AS relevance FROM content";
-    public static String MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
+    static String SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', match_sql * 100.0 AS relevance FROM content";
+    static String MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
 
-    public ContentController() {
+    @Autowired
+    public ContentController(ObjectMapper objectMapper, ContentRepository contentRepository) {
         super(SELECT_SQL, MATCH_SQL);
+        this.objectMapper = objectMapper;
+        this.contentRepository = contentRepository;
     }
 
-    public static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> contentTypes, List<Integer> researchPhases,
+    static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> contentTypes, List<Integer> researchPhases,
                                                          List<Integer> people, List<Integer> roleTypes, List<Integer> orgUnits) {
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
@@ -140,24 +148,27 @@ public class ContentController extends AbstractSearchController {
             }
         }
 
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+
         if(isGuide) {
-            SimpleFilterProvider filter = new SimpleFilterProvider();
-            filter.setFailOnUnknownId(false);
+
             filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("webpages",
                     "keywords", "researchPhases", "policies", "similarContentItems",
                     "actionableInfo", "callToAction", "orgUnits", "people"));
             filter.addFilter("guideCategories", SimpleBeanPropertyFilter.serializeAllExcept("contentItems"));
-
-            try
-            {
-                results = objectMapper.writer(filter).writeValueAsString(item);
-            }
-            catch (JsonProcessingException e) {
-                System.out.println(e.toString());
-            }
         } else {
-            results = this.getFilteredResults(item, Content.ENTITY_NAME, "similarContentItems", "guideCategories");
+            filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("similarContentItems", "guideCategories"));
         }
+
+        try
+        {
+            results = objectMapper.writer(filter).writeValueAsString(item);
+        }
+        catch (JsonProcessingException e) {
+            logger.error(e.toString());
+        }
+
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
@@ -166,8 +177,8 @@ public class ContentController extends AbstractSearchController {
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
         final Content item = contentRepository.findOne(id);
-        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, Content.DETAILS);
+//        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, Content.DETAILS);
 
-        return new ResponseEntity<>(results, HttpStatus.OK);
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 }

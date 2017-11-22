@@ -1,6 +1,7 @@
 package nz.ac.auckland.cer.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
@@ -13,6 +14,8 @@ import nz.ac.auckland.cer.repository.PersonRepository;
 import nz.ac.auckland.cer.sql.SqlParameter;
 import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +29,22 @@ import java.util.List;
 @Api(tags = {"Person"}, description = "Operations on person")
 public class PersonController extends AbstractSearchController {
 
-    public static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
-    public static String SELECT_SQL = "SELECT DISTINCT 'person' AS 'type', id, CONCAT(first_name, ' ', last_name) AS title, job_title AS 'subtitle', image, 'blank' AS 'url', match_sql * 2.0 AS relevance FROM person";
+    private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
+    static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
+    static String SELECT_SQL = "SELECT DISTINCT 'person' AS 'type', id, CONCAT(first_name, ' ', last_name) AS title, job_title AS 'subtitle', image, 'blank' AS 'url', match_sql * 2.0 AS relevance FROM person";
 
-    @Autowired
+    private ObjectMapper objectMapper;
     private PersonRepository personRepository;
 
-    public PersonController() {
+    @Autowired
+    public PersonController(ObjectMapper objectMapper, PersonRepository personRepository) {
         super(SELECT_SQL, MATCH_SQL);
+        this.objectMapper = objectMapper;
+        this.personRepository = personRepository;
     }
 
-
-    public static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> orgUnits, List<Integer> contentItems, List<Integer> roleTypes) {
+    static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> orgUnits, List<Integer> contentItems, List<Integer> roleTypes) {
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
 
@@ -117,7 +123,7 @@ public class PersonController extends AbstractSearchController {
             results = objectMapper.writer(filter).writeValueAsString(item);
         }
         catch (JsonProcessingException e) {
-            System.out.println(e.toString());
+            logger.error(e.toString());
         }
 
         return new ResponseEntity<>(results, HttpStatus.OK);
