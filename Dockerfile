@@ -26,22 +26,20 @@ RUN		        if [ "$http_proxy" != "" ]; then \
 		            echo "/opt/maven/bin/mvn \$*" >> /usr/local/bin/mvn; \
 		        fi
 
-#RUN             ln -s /opt/maven/bin/mvn /usr/local/bin
 ENV             MAVEN_HOME /opt/maven
 RUN             rm -f /apache-maven.tar.gz
 
 # Build research hub api jar with maven
 WORKDIR         /research-hub-api/
 
-# Resolve dependencies with maven
+# Resolve dependencies with maven, stops maven from re-downloading dependencies
 COPY            /pom.xml /research-hub-api/pom.xml
-RUN		        mvn dependency:resolve
+RUN             mvn dependency:go-offline
+RUN             mvn verify clean --fail-never
 
 # Copy src files and build project
 COPY            /src /research-hub-api/src
-# Stops maven from re-downloading dependencies
-RUN             mvn verify clean --fail-never
-RUN 		    mvn package
+RUN 		    mvn -o package
 RUN             mv target/app.jar /app.jar
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.config.location=file:/application.properties","-jar","/app.jar"]
