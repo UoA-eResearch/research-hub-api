@@ -8,8 +8,22 @@
     <version>1.1.0</version>
     <packaging>jar</packaging>
 
-    <name>research-hub-api</name>
-    <description>A prototype REST API for the Research Hub</description>
+    <name>Research Hub API</name>
+    <description>The Research Hub REST API</description>
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://raw.githubusercontent.com/UoA-eResearch/research-hub-api/master/LICENSE</url>
+        </license>
+    </licenses>
+
+    <contributors>
+        <contributor>
+            <name>The Centre for eResearch, The University of Auckland</name>
+            <url>http://www.eresearch.auckland.ac.nz/en/centre-for-eresearch.html</url>
+            <email>eresearch-support@list.auckland.ac.nz</email>
+        </contributor>
+    </contributors>
 
     <parent>
         <!-- https://mvnrepository.com/artifact/org.springframework.boot -->
@@ -97,6 +111,13 @@
             <groupId>org.antlr</groupId>
             <artifactId>stringtemplate</artifactId>
             <version>3.2</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-model -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <version>3.5.2</version>
         </dependency>
     </dependencies>
 
