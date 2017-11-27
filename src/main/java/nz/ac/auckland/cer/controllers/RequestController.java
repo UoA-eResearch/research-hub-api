@@ -90,7 +90,7 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
+    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
         String url = baseUrl + "/api/now/table/u_request";
         JSONObject response = new JSONObject();
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
