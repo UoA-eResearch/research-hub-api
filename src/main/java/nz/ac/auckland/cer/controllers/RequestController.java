@@ -12,11 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -53,11 +55,23 @@ public class RequestController {
         builder.authenticator(new Authenticator() {
             @Override
             public Request authenticate(Route route, Response response) throws IOException {
+                if (responseCount(response) >= 3) {
+                    return null; // If we've failed 3 times, give up. - in real life, never give up!!
+                }
+
                 String credential = Credentials.basic(user, password);
                 return response.request().newBuilder().header("Authorization", credential).build();
             }
         });
         client = builder.build();
+    }
+
+    private int responseCount(Response response) {
+        int result = 1;
+        while ((response = response.priorResponse()) != null) {
+            result++;
+        }
+        return result;
     }
 
     private ResponseBody post(String url, String json) throws IOException {
@@ -76,56 +90,80 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    String createVMConsultationRequest(@RequestAttribute(value="uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation, HttpServletResponse httpServletResponse) {
+    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
         String url = baseUrl + "/api/now/table/u_request";
         JSONObject response = new JSONObject();
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        if (requestorUpi != null) {
-            try {
-                // Generate comments based on template
-                ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
-                String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
-                StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
-                ticketComments.setAttribute("requestorUpi", requestorUpi);
-                ticketComments.setAttribute("time", vmConsultation.getDate());
-                ticketComments.setAttribute("date", vmConsultation.getTime());
-                ticketComments.setAttribute("comments", vmConsultation.getComments());
+        // Generate comments based on template
+        ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
+        String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
+        StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
+        ticketComments.setAttribute("requestorUpi", requestorUpi);
+        ticketComments.setAttribute("time", vmConsultation.getDate());
+        ticketComments.setAttribute("date", vmConsultation.getTime());
+        ticketComments.setAttribute("comments", vmConsultation.getComments());
 
-                // Create ticket body
-                JSONObject body = new JSONObject()
-                        .put("u_requestor", requestorUpi)
-                        .put("assignment_group", cerVmAssignmentGroupId)
-                        .put("category", "Research IT")
-                        .put("subcategory", "Research Computing Platforms")
-                        .put("u_business_service", cerVmBusinessServiceId)
-                        .put("short_description", "Research VM consultation request: " + requestorUpi)
-                        .put("comments", ticketComments.toString())
-                        .put("watch_list", String.join(",", cerVmWatchList));
+        // Create ticket body
+        JSONObject body = new JSONObject()
+                .put("u_requestor", requestorUpi)
+                .put("assignment_group", cerVmAssignmentGroupId)
+                .put("category", "Research IT")
+                .put("subcategory", "Research Computing Platforms")
+                .put("u_business_service", cerVmBusinessServiceId)
+                .put("short_description", "Research VM consultation request: " + requestorUpi)
+                .put("comments", ticketComments.toString())
+                .put("watch_list", String.join(",", cerVmWatchList));
 
-                try {
-                    // Submit ticket
-                    ResponseBody responseBody = post(url, body.toString());
-                    JSONObject serviceNowResponse = new JSONObject(responseBody.string()).getJSONObject("result");
-                    response.put("ticketNumber", serviceNowResponse.getString("number"));
-                    response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + serviceNowResponse.getString("sys_id"));
-                } catch (IOException e) {
-                    response.put("error", "IOException: there was an error communicating with ServiceNow");
-                    logger.error(e.toString());
-                } catch (JSONException e) {
-                    response.put("error", "JSONException: there was an error parsing the ServiceNow response");
-                    logger.error(e.toString());
-                }
-            } catch (IOException e) {
-                response.put("error", "There was an error reading the ticket template");
-                logger.error(e.toString());
+        try {
+            // Submit ticket
+            ResponseBody responseBody = post(url, body.toString());
+            JSONObject serviceNowResponse = new JSONObject(responseBody.string());
+
+            if (!serviceNowResponse.isNull("result")) {
+                JSONObject result = serviceNowResponse.getJSONObject("result");
+                httpStatus = HttpStatus.OK;
+                response.put("ticketNumber", result.getString("number"));
+                response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + result.getString("sys_id"));
+            } else if (!serviceNowResponse.isNull("error")) {
+                JSONObject error = serviceNowResponse.getJSONObject("error");
+                response.put("status", httpStatus.value());
+                response.put("statusText", httpStatus.getReasonPhrase());
+                response.put("error", "ServiceNow internal error");
+                response.put("message", error.getString("message"));
+                response.put("detail", error.getString("detail"));
+                logger.error(response.toString());
             }
-        } else {
-            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            String message = "User not logged in: 'uid' request attribute not found";
-            logger.error(message);
-            response.put("error", message);
+        } catch (IOException e) {
+            response.put("status", httpStatus.value());
+            response.put("statusText", httpStatus.getReasonPhrase());
+            response.put("error", "Error communicating with ServiceNow");
+            response.put("message", e.getMessage());
+            response.put("detail", e.getStackTrace());
+            logger.error(response.toString());
+        } catch (JSONException e) {
+            response.put("status", httpStatus.value());
+            response.put("statusText", httpStatus.getReasonPhrase());
+            response.put("error", "Error reading ServiceNow response");
+            response.put("message", e.getMessage());
+            response.put("detail", e.getStackTrace());
+            logger.error(response.toString());
         }
 
-        return response.toString();
+        return new ResponseEntity<>(response.toString(), httpStatus);
+    }
+
+    @ExceptionHandler(ServletRequestBindingException.class)
+    public ResponseEntity<Object> handleMissingParams(ServletRequestBindingException e) {
+        HttpStatus httpStatus = HttpStatus.UNAUTHORIZED;
+        JSONObject response = new JSONObject();
+        response.put("status", httpStatus.value());
+        response.put("statusText", httpStatus.getReasonPhrase());
+        response.put("error", "User is not authenticated with UoA Single Sign On");
+        response.put("message", e.getMessage());
+        response.put("detail", e.getStackTrace());
+        logger.error(response.toString());
+
+        return new ResponseEntity<>(response.toString(), httpStatus);
     }
 }

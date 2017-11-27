@@ -108,23 +108,14 @@ public class PersonController extends AbstractSearchController {
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person/{id}")
     @ApiOperation(value = "get a specific person")
-    public ResponseEntity<String> getPerson(@PathVariable Integer id) {
+    public ResponseEntity<String> getPerson(@PathVariable Integer id) throws JsonProcessingException {
         final Person item = personRepository.findOne(id);
 
         SimpleFilterProvider filter = new SimpleFilterProvider();
         filter.setFailOnUnknownId(false);
         filter.addFilter(Person.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept());
         filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
-
-        String results = "";
-
-        try
-        {
-            results = objectMapper.writer(filter).writeValueAsString(item);
-        }
-        catch (JsonProcessingException e) {
-            logger.error(e.toString());
-        }
+        String results = objectMapper.writer(filter).writeValueAsString(item);
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }

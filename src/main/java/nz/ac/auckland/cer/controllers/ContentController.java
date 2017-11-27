@@ -135,10 +135,9 @@ public class ContentController extends AbstractSearchController {
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content/{id}")
     @ApiOperation(value = "get a specific content item")
-    public ResponseEntity<String> getContent(@PathVariable Integer id) {
+    public ResponseEntity<String> getContent(@PathVariable Integer id) throws JsonProcessingException {
         final Content item = contentRepository.findOne(id);
 
-        String results = "";
         boolean isGuide = false;
 
         for(ContentType contentType: item.getContentTypes()) {
@@ -152,22 +151,17 @@ public class ContentController extends AbstractSearchController {
         filter.setFailOnUnknownId(false);
 
         if(isGuide) {
-
             filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("webpages",
                     "keywords", "researchPhases", "policies", "similarContentItems",
                     "actionableInfo", "callToAction", "orgUnits", "people"));
             filter.addFilter("guideCategories", SimpleBeanPropertyFilter.serializeAllExcept("contentItems"));
         } else {
             filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("similarContentItems", "guideCategories"));
+            filter.addFilter("orgUnits", SimpleBeanPropertyFilter.serializeAllExcept("people"));
+            filter.addFilter("people", SimpleBeanPropertyFilter.serializeAllExcept("orgUnits"));
         }
 
-        try
-        {
-            results = objectMapper.writer(filter).writeValueAsString(item);
-        }
-        catch (JsonProcessingException e) {
-            logger.error(e.toString());
-        }
+        String results = objectMapper.writer(filter).writeValueAsString(item);
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
@@ -175,10 +169,14 @@ public class ContentController extends AbstractSearchController {
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content/{id}/similar")
     @ApiOperation(value = "get a specific content item")
-    public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) {
+    public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) throws JsonProcessingException {
         final Content item = contentRepository.findOne(id);
-//        String results = this.getFilteredResults(item.getSimilarContentItems(), Content.ENTITY_NAME, Content.DETAILS);
 
-        return new ResponseEntity<>("", HttpStatus.OK);
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept(Content.DETAILS));
+        String results = objectMapper.writer(filter).writeValueAsString(item.getSimilarContentItems());
+
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }
