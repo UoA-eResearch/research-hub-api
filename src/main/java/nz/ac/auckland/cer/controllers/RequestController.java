@@ -92,8 +92,11 @@ public class RequestController {
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
     ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
         String url = baseUrl + "/api/now/table/u_request";
-        JSONObject response = new JSONObject();
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        JSONObject response = new JSONObject();
+        response.put("status", httpStatus.value());
+        response.put("statusText", httpStatus.getReasonPhrase());
 
         // Generate comments based on template
         ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
@@ -123,27 +126,23 @@ public class RequestController {
             if (!serviceNowResponse.isNull("result")) {
                 JSONObject result = serviceNowResponse.getJSONObject("result");
                 httpStatus = HttpStatus.OK;
+                response.put("status", httpStatus.value());
+                response.put("statusText", httpStatus.getReasonPhrase());
                 response.put("ticketNumber", result.getString("number"));
                 response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + result.getString("sys_id"));
             } else if (!serviceNowResponse.isNull("error")) {
                 JSONObject error = serviceNowResponse.getJSONObject("error");
-                response.put("status", httpStatus.value());
-                response.put("statusText", httpStatus.getReasonPhrase());
                 response.put("error", "ServiceNow internal error");
                 response.put("message", error.getString("message"));
                 response.put("detail", error.getString("detail"));
                 logger.error(response.toString());
             }
         } catch (IOException e) {
-            response.put("status", httpStatus.value());
-            response.put("statusText", httpStatus.getReasonPhrase());
             response.put("error", "Error communicating with ServiceNow");
             response.put("message", e.getMessage());
             response.put("detail", e.getStackTrace());
             logger.error(response.toString());
         } catch (JSONException e) {
-            response.put("status", httpStatus.value());
-            response.put("statusText", httpStatus.getReasonPhrase());
             response.put("error", "Error reading ServiceNow response");
             response.put("message", e.getMessage());
             response.put("detail", e.getStackTrace());
