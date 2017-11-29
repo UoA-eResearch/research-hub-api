@@ -48,6 +48,7 @@ public class Content {
     private String additionalInfo;
     private String action;
     private String image;
+    private String keywords;
 
     @Column(name = "created", insertable = false, updatable = false) // Makes sure that the database updates the value automatically
     private LocalDateTime created;
@@ -67,11 +68,6 @@ public class Content {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
     @JsonIgnoreProperties(value = "content", allowSetters=true)
     private Set<Webpage> webpages;
-
-    @JsonFilter("keywords")
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
-    @JsonIgnoreProperties(value = "content", allowSetters=true)
-    private Set<Keyword> keywords;
 
     //Many to many
     @JsonFilter("contentTypes")
@@ -127,6 +123,14 @@ public class Content {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
     }
 
     public ActionType getActionType() {
@@ -223,14 +227,6 @@ public class Content {
 
     public void setWebpages(Set<Webpage> webpages) {
         this.webpages = webpages;
-    }
-
-    public Set<Keyword> getKeywords() {
-        return keywords;
-    }
-
-    public void setKeywords(Set<Keyword> keywords) {
-        this.keywords = keywords;
     }
 
     public Set<ContentType> getContentTypes() {
