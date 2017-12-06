@@ -17,6 +17,8 @@ public class OrgUnit {
     private int id;
 
     private String name;
+    private String summary;
+    private String image;
     private String url;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "orgUnits")
@@ -48,6 +50,22 @@ public class OrgUnit {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     public String getUrl() {

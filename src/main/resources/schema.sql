@@ -17,6 +17,9 @@ CREATE TABLE `action_type` (
 CREATE TABLE `content_type` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `name_ui_singular` varchar(255) NOT NULL,
+  `name_ui_plural` varchar(255) NOT NULL,
+  `id_ui_category` int(11) unsigned NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
@@ -58,6 +61,8 @@ CREATE TABLE `content` (
 CREATE TABLE `org_unit` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
+  `summary` TEXT DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
   `url` TEXT DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
