@@ -15,9 +15,8 @@ public class ContentType extends Category {
     public static final String ENTITY_NAME = "ContentType";
 
 
-    private String nameUiSingular;
-    private String nameUiPlural;
-    private Integer idUiCategory;
+    private String nameUi;
+    private Integer idUi;
 
     @ManyToMany(mappedBy = "contentTypes")
     @JsonIgnore
@@ -35,28 +34,20 @@ public class ContentType extends Category {
         super(name);
     }
 
-    public String getNameUiSingular() {
-        return nameUiSingular;
+    public String getNameUi() {
+        return nameUi;
     }
 
-    public void setNameUiSingular(String nameUiSingular) {
-        this.nameUiSingular = nameUiSingular;
+    public void setNameUi(String nameUi) {
+        this.nameUi = nameUi;
     }
 
-    public String getNameUiPlural() {
-        return nameUiPlural;
+    public Integer getIdUi() {
+        return idUi;
     }
 
-    public void setNameUiPlural(String nameUiPlural) {
-        this.nameUiPlural = nameUiPlural;
-    }
-
-    public Integer getIdUiCategory() {
-        return idUiCategory;
-    }
-
-    public void setIdUiCategory(Integer idUiCategory) {
-        this.idUiCategory = idUiCategory;
+    public void setIdUi(Integer idUi) {
+        this.idUi = idUi;
     }
 
     public Set<Content> getContentItems() {
