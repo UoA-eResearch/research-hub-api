@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 
@@ -50,20 +54,38 @@ public class RequestController {
     @Value("${service-now.cer.vm.watch-list}")
     private String[] cerVmWatchList;
 
-    RequestController() {
-        builder = new OkHttpClient.Builder();
-        builder.authenticator(new Authenticator() {
-            @Override
-            public Request authenticate(Route route, Response response) throws IOException {
-                if (responseCount(response) >= 3) {
-                    return null; // If we've failed 3 times, give up. - in real life, never give up!!
-                }
+    @Value("${ok-http.proxy}")
+    private String proxy;
 
-                String credential = Credentials.basic(user, password);
-                return response.request().newBuilder().header("Authorization", credential).build();
+
+    RequestController() {
+
+    }
+
+    private void buildClient() throws MalformedURLException {
+        if (builder == null || client == null) {
+            builder = new OkHttpClient.Builder();
+
+            // If proxy env variables are set then use proxy
+            if (!proxy.equals("")) {
+                URL proxyUrl = new URL(proxy);
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl.getProtocol() + "://" + proxyUrl.getHost(), proxyUrl.getPort()));
+                builder.proxy(proxy);
             }
-        });
-        client = builder.build();
+
+            builder.authenticator(new Authenticator() {
+                @Override
+                public Request authenticate(Route route, Response response) throws IOException {
+                    if (responseCount(response) >= 3) {
+                        return null; // If we've failed 3 times, give up. - in real life, never give up!!
+                    }
+
+                    String credential = Credentials.basic(user, password);
+                    return response.request().newBuilder().header("Authorization", credential).build();
+                }
+            });
+            client = builder.build();
+        }
     }
 
     private int responseCount(Response response) {
@@ -90,7 +112,9 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
+    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid", required = false) String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
+        this.buildClient();
+
         String url = baseUrl + "/api/now/table/u_request";
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
