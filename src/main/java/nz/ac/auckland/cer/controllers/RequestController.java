@@ -69,7 +69,7 @@ public class RequestController {
             // If proxy env variables are set then use proxy
             if (!proxy.equals("")) {
                 URL proxyUrl = new URL(proxy);
-                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl.getProtocol() + "://" + proxyUrl.getHost(), proxyUrl.getPort()));
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl.getHost(), proxyUrl.getPort()));
                 builder.proxy(proxy);
             }
 
