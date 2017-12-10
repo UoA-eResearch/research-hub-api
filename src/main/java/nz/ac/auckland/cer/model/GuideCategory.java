@@ -33,7 +33,7 @@ public class GuideCategory {
     @JsonFilter("contentItems")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "guide_category_content", joinColumns = @JoinColumn(name = "guide_category_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"))
-    @JsonIgnoreProperties(value = {"guideCategories"})
+    @JsonIgnoreProperties(value = {"guideCategories", "contentItems", "similarContentItems"})
     private Set<Content> contentItems;
 
     public int getId() {
