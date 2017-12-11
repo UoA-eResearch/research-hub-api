@@ -33,6 +33,7 @@ public class Person {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "person_org_unit", joinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "org_unit_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = {"people", "contentItems"}, allowSetters = true)
+    @OrderBy("name ASC")
     private Set<OrgUnit> orgUnits;
 
     // One to many

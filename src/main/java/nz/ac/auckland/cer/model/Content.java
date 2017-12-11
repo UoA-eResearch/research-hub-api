@@ -66,6 +66,7 @@ public class Content {
     // One to many
     @JsonFilter("webpages")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
+    @OrderBy("title ASC")
     @JsonIgnoreProperties(value = "content", allowSetters=true)
     private Set<Webpage> webpages;
 
@@ -74,42 +75,49 @@ public class Content {
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_content_type", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "content_type_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    @OrderBy("nameUi ASC")
     private Set<ContentType> contentTypes;
 
     @JsonFilter("policies")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_policy", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "policy_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    @OrderBy("name ASC")
     private Set<Policy> policies;
 
     @JsonFilter("similarContentItems")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_to_content", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "similar_content_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    @OrderBy("name ASC")
     private Set<Content> similarContentItems;
 
     @JsonFilter("orgUnits")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_org_unit", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "org_unit_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    @OrderBy("name ASC")
     private Set<OrgUnit> orgUnits;
 
     @JsonFilter("researchPhases")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "content_research_phase", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "research_phase_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentItems", allowSetters=true)
+    @OrderBy("id ASC")
     private Set<ResearchPhase> researchPhases;
 
     @JsonFilter("people")
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(name = "person_content_role", joinColumns = @JoinColumn(name = "content_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "person_id", referencedColumnName = "id"))
     @JsonIgnoreProperties(value = "contentRoles", allowSetters=true)
+    @OrderBy("firstName ASC, lastName ASC")
     private Set<Person> people;
 
     // Guides
     @JsonFilter("guideCategories")
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "content")
     @JsonIgnoreProperties(value = {"content"}, allowSetters = true)
+    @OrderBy("displayOrder ASC")
     private Set<GuideCategory> guideCategories;
 
     public Content()

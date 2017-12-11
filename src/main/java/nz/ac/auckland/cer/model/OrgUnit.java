@@ -23,10 +23,12 @@ public class OrgUnit {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "orgUnits")
     @JsonIgnoreProperties(value = {"contentRoles"}, allowSetters = true)
+    @OrderBy("firstName ASC, lastName DESC")
     private Set<Person> people;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "orgUnits")
     @JsonIgnoreProperties(value = {"similarContentItems"}, allowSetters = true)
+    @OrderBy("name ASC")
     private Set<Content> contentItems;
 
     public OrgUnit() {
