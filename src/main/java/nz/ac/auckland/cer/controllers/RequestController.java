@@ -1,11 +1,10 @@
 package nz.ac.auckland.cer.controllers;
 
-
-import nz.ac.auckland.cer.model.requests.VMConsultation;
 import okhttp3.*;
 import okhttp3.ResponseBody;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -25,14 +24,16 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 
 
 @RestController
 public class RequestController {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestController.class);
-
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static String CATEGORY = "Research IT";
+    private static String SUBCATEGORY = "Research Computing Platforms";
     private OkHttpClient.Builder builder;
     private OkHttpClient client;
 
@@ -45,6 +46,9 @@ public class RequestController {
     @Value("${service-now.password}")
     private String password;
 
+    @Value("${ok-http.proxy}")
+    private String proxy;
+
     @Value("${service-now.cer.vm.assignment-group-id}")
     private String cerVmAssignmentGroupId;
 
@@ -54,9 +58,14 @@ public class RequestController {
     @Value("${service-now.cer.vm.watch-list}")
     private String[] cerVmWatchList;
 
-    @Value("${ok-http.proxy}")
-    private String proxy;
+    @Value("${service-now.cer.data.assignment-group-id}")
+    private String cerDataAssignmentGroupId;
 
+    @Value("${service-now.cer.data.business-service-id}")
+    private String cerDataBusinessServiceId;
+
+    @Value("${service-now.cer.data.watch-list}")
+    private String[] cerDataWatchList;
 
     RequestController() {
 
@@ -111,8 +120,57 @@ public class RequestController {
      */
 
     @CrossOrigin
-    @RequestMapping(method = RequestMethod.POST, value = "/vmConsultation/create")
-    ResponseEntity<Object> createVMConsultationRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody VMConsultation vmConsultation) throws IOException {
+    @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/vm")
+    ResponseEntity<Object> createServiceRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody String body) throws IOException {
+        StringTemplate template = this.getTemplate("servicenow_request_vm.tpl", body);
+        template.setAttribute("requestorUpi", requestorUpi);
+        String shortDescription = "Research VM consultation request: " + requestorUpi;
+        String output = template.toString();
+
+        return this.sendServiceNowRequest(requestorUpi, cerVmAssignmentGroupId, CATEGORY, SUBCATEGORY, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
+    }
+
+    /*
+     * Create ServiceNow Data Consultation ticket
+     */
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/storage")
+    ResponseEntity<Object> createRequestStorage(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody String body) throws IOException {
+        // Generate comments based on template
+        StringTemplate template = this.getTemplate("servicenow_request_storage.tpl", body);
+        template.setAttribute("requestorUpi", requestorUpi);
+        String shortDescription = "Storage request: " + requestorUpi;
+        String output = template.toString();
+
+        return this.sendServiceNowRequest(requestorUpi, cerDataAssignmentGroupId, CATEGORY, SUBCATEGORY, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
+    }
+
+    private StringTemplate getTemplate(String templateName, String body) throws IOException {
+        ClassPathResource res = new ClassPathResource(templateName);
+        String templateFile = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
+        StringTemplate template = new StringTemplate(templateFile, DefaultTemplateLexer.class);
+
+        JSONObject jsonObject = new JSONObject(body);
+
+        for (Iterator<String> jsonObjectIter = jsonObject.keys(); jsonObjectIter.hasNext(); ) {
+            String key = jsonObjectIter.next();
+            Object value = jsonObject.get(key);
+
+            if (value instanceof JSONArray) {
+                JSONArray jsonArray = (JSONArray) value;
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    template.setAttribute(key, jsonArray.get(i));
+                }
+            } else {
+                template.setAttribute(key, value);
+            }
+        }
+
+        return template;
+    }
+
+    private ResponseEntity<Object> sendServiceNowRequest(String requestorUpi, String category, String subcategory, String assignmentGroup, String businessServiceId, String shortDescription, String comments, String[] watchList) throws IOException {
         this.buildClient();
 
         String url = baseUrl + "/api/now/table/u_request";
@@ -122,25 +180,16 @@ public class RequestController {
         response.put("status", httpStatus.value());
         response.put("statusText", httpStatus.getReasonPhrase());
 
-        // Generate comments based on template
-        ClassPathResource res = new ClassPathResource("servicenow_consultation_vm.tpl");
-        String template = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
-        StringTemplate ticketComments = new StringTemplate(template, DefaultTemplateLexer.class);
-        ticketComments.setAttribute("requestorUpi", requestorUpi);
-        ticketComments.setAttribute("time", vmConsultation.getDate());
-        ticketComments.setAttribute("date", vmConsultation.getTime());
-        ticketComments.setAttribute("comments", vmConsultation.getComments());
-
         // Create ticket body
         JSONObject body = new JSONObject()
                 .put("u_requestor", requestorUpi)
-                .put("assignment_group", cerVmAssignmentGroupId)
-                .put("category", "Research IT")
-                .put("subcategory", "Research Computing Platforms")
-                .put("u_business_service", cerVmBusinessServiceId)
-                .put("short_description", "Research VM consultation request: " + requestorUpi)
-                .put("comments", ticketComments.toString())
-                .put("watch_list", String.join(",", cerVmWatchList));
+                .put("assignment_group", assignmentGroup)
+                .put("category", category)
+                .put("subcategory", subcategory)
+                .put("u_business_service", businessServiceId)
+                .put("short_description", shortDescription)
+                .put("comments", comments)
+                .put("watch_list", String.join(",", watchList));
 
         try {
             // Submit ticket
