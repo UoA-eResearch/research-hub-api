@@ -1,10 +1,11 @@
 package nz.ac.auckland.cer.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import okhttp3.ResponseBody;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -24,7 +25,7 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
+import java.util.Map;
 
 
 @RestController
@@ -151,21 +152,8 @@ public class RequestController {
         String templateFile = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
         StringTemplate template = new StringTemplate(templateFile, DefaultTemplateLexer.class);
 
-        JSONObject jsonObject = new JSONObject(body);
-
-        for (Iterator<String> jsonObjectIter = jsonObject.keys(); jsonObjectIter.hasNext(); ) {
-            String key = jsonObjectIter.next();
-            Object value = jsonObject.get(key);
-
-            if (value instanceof JSONArray) {
-                JSONArray jsonArray = (JSONArray) value;
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    template.setAttribute(key, jsonArray.get(i));
-                }
-            } else {
-                template.setAttribute(key, value);
-            }
-        }
+        Map<String, Object> objectMap = new ObjectMapper().readValue(body, new TypeReference<Map<String, Object>>() {});
+        template.setAttributes(objectMap);
 
         return template;
     }

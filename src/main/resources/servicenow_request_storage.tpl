@@ -17,8 +17,8 @@ Fields of research: $fieldOfResearch:{n|$\n$$\ $$\ $$\ $$\ $$n$}$
 Data Info
 ======================
 Short name: $shortName$
-Data needs: $dataRequirements:{n|$\n$$\ $$\ $$\ $$\ $$n$}$
-Project members: $projectMembers:{n|$\n$$\ $$\ $$\ $$\ $$n$}$
+Data needs: $dataRequirements:{n|$\n$$\ $$\ $$\ $$\ $$n$}$$if(dataRequirementsOther)$: $dataRequirementsOther$$endif$
+Project members: $projectMembers:{n|$\n$$\ $$\ $$\ $$\ $$n.firstName$ $n.lastName$, $n.email$, $n.username$, $n.access$, $n.roles:{r|$r$ }$}$
 
 Data Size
 ======================
