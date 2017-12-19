@@ -144,7 +144,7 @@ public class RequestController {
         String shortDescription = "Research VM consultation request: " + requestorUpi;
         String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, "Computing Platform", "VM Server", cerCmdbCiId, cerVmAssignmentGroupId, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
+        return this.sendServiceNowRequest(requestorUpi, "Research IT", "Research Computing Platforms", cerCmdbCiId, cerVmAssignmentGroupId, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
     }
 
     /*
@@ -165,7 +165,7 @@ public class RequestController {
         String shortDescription = "Storage request: " + requestorUpi;
         String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, "Storage & Data Management" , "", "", cerDataAssignmentGroupId, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
+        return this.sendServiceNowRequest(requestorUpi, "Research IT" , "Storage & Data Management", "", cerDataAssignmentGroupId, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
     }
 
     private StringTemplate getTemplate(String templateName, String body) throws IOException {
