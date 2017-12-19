@@ -33,8 +33,6 @@ public class RequestController {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestController.class);
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static String CATEGORY = "Research IT";
-    private static String SUBCATEGORY = "Research Computing Platforms";
     private OkHttpClient.Builder builder;
     private OkHttpClient client;
 
@@ -49,6 +47,9 @@ public class RequestController {
 
     @Value("${ok-http.proxy}")
     private String proxy;
+
+    @Value("${service-now.cer.vm.cmdb-ci}")
+    private String cerCmdbCiId;
 
     @Value("${service-now.cer.vm.assignment-group-id}")
     private String cerVmAssignmentGroupId;
@@ -122,13 +123,18 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/vm")
-    ResponseEntity<Object> createServiceRequest(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody String body) throws IOException {
+    ResponseEntity<Object> createServiceRequest(@RequestAttribute(value = "uid") String requestorUpi,
+                                                @RequestAttribute(value = "displayName") String displayName,
+                                                @RequestAttribute(value = "mail") String mail,
+                                                @RequestBody String body) throws IOException {
         StringTemplate template = this.getTemplate("servicenow_request_vm.tpl", body);
         template.setAttribute("requestorUpi", requestorUpi);
+        template.setAttribute("displayName", displayName);
+        template.setAttribute("mail", mail);
         String shortDescription = "Research VM consultation request: " + requestorUpi;
         String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, cerVmAssignmentGroupId, CATEGORY, SUBCATEGORY, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
+        return this.sendServiceNowRequest(requestorUpi, "Computing Platform", "VM Server", cerCmdbCiId, cerVmAssignmentGroupId, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
     }
 
     /*
@@ -137,14 +143,15 @@ public class RequestController {
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/storage")
-    ResponseEntity<Object> createRequestStorage(@RequestAttribute(value = "uid") String requestorUpi, @RequestBody String body) throws IOException {
+    ResponseEntity<Object> createRequestStorage(@RequestAttribute(value = "uid") String requestorUpi,
+                                                @RequestBody String body) throws IOException {
         // Generate comments based on template
         StringTemplate template = this.getTemplate("servicenow_request_storage.tpl", body);
         template.setAttribute("requestorUpi", requestorUpi);
         String shortDescription = "Storage request: " + requestorUpi;
         String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, cerDataAssignmentGroupId, CATEGORY, SUBCATEGORY, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
+        return this.sendServiceNowRequest(requestorUpi, "Storage & Data Management" , "", "", cerDataAssignmentGroupId, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
     }
 
     private StringTemplate getTemplate(String templateName, String body) throws IOException {
@@ -158,7 +165,7 @@ public class RequestController {
         return template;
     }
 
-    private ResponseEntity<Object> sendServiceNowRequest(String requestorUpi, String category, String subcategory, String assignmentGroup, String businessServiceId, String shortDescription, String comments, String[] watchList) throws IOException {
+    private ResponseEntity<Object> sendServiceNowRequest(String requestorUpi, String category, String subcategory, String cmdbCiId, String assignmentGroup, String businessServiceId, String shortDescription, String comments, String[] watchList) throws IOException {
         this.buildClient();
 
         String url = baseUrl + "/api/now/table/u_request";
@@ -174,6 +181,7 @@ public class RequestController {
                 .put("assignment_group", assignmentGroup)
                 .put("category", category)
                 .put("subcategory", subcategory)
+                .put("cmdb_ci", cmdbCiId)
                 .put("u_business_service", businessServiceId)
                 .put("short_description", shortDescription)
                 .put("comments", comments)

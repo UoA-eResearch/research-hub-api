@@ -1,8 +1,11 @@
 Hello,
 
-A new storage request has been submitted via the Research Hub. Please find the details below.
+$displayName$ has submitted a virtual machine consultation request via the Research Hub. The details for the requested consultation are below:
 
-Researcher: $requestorUpi$
+Researcher:
+    Name: $displayName$
+    Username: $requestorUpi$
+    Email: $mail$
 Time: $time$
 Date: $date$
 Comments: $comments$
