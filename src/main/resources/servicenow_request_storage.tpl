@@ -1,10 +1,13 @@
 Hello,
 
-A new storage request has been submitted via the Research Hub. Please find the details below.
+$displayName$ has submitted a storage request via the Research Hub. Please find the details below.
 
 General
 ======================
-Researcher: $requestorUpi$
+Researcher:
+    Name: $displayName$
+    Username: $requestorUpi$
+    Email: $mail$
 Storage type: $storageType$
 
 Project
