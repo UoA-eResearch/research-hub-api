@@ -117,6 +117,16 @@ public class RequestController {
         return response.body();
     }
 
+    private String getPrimaryEmail(String mail) {
+        String[] addresses = mail.split(";");
+
+        if (addresses.length > 0) {
+            return addresses[0];
+        }
+
+        return "";
+    }
+
     /*
      * Create ServiceNow VM Consultation ticket
      */
@@ -130,7 +140,7 @@ public class RequestController {
         StringTemplate template = this.getTemplate("servicenow_request_vm.tpl", body);
         template.setAttribute("requestorUpi", requestorUpi);
         template.setAttribute("displayName", displayName);
-        template.setAttribute("mail", mail);
+        template.setAttribute("mail", this.getPrimaryEmail(mail));
         String shortDescription = "Research VM consultation request: " + requestorUpi;
         String output = template.toString();
 
@@ -144,10 +154,14 @@ public class RequestController {
     @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/storage")
     ResponseEntity<Object> createRequestStorage(@RequestAttribute(value = "uid") String requestorUpi,
+                                                @RequestAttribute(value = "displayName") String displayName,
+                                                @RequestAttribute(value = "mail") String mail,
                                                 @RequestBody String body) throws IOException {
         // Generate comments based on template
         StringTemplate template = this.getTemplate("servicenow_request_storage.tpl", body);
         template.setAttribute("requestorUpi", requestorUpi);
+        template.setAttribute("displayName", displayName);
+        template.setAttribute("mail", this.getPrimaryEmail(mail));
         String shortDescription = "Storage request: " + requestorUpi;
         String output = template.toString();
 
