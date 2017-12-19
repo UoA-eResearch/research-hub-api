@@ -47,6 +47,7 @@ public class Content {
     private String actionableInfo;
     private String additionalInfo;
     private String action;
+    private String actionLabel;
     private String image;
     private String keywords;
 
@@ -155,6 +156,14 @@ public class Content {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getActionLabel() {
+        return actionLabel;
+    }
+
+    public void setActionLabel(String actionLabel) {
+        this.actionLabel = actionLabel;
     }
 
     public String getSummary() {

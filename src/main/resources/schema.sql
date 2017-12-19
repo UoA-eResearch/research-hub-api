@@ -47,6 +47,7 @@ CREATE TABLE `content` (
   `image` varchar(255) DEFAULT NULL,
   `action` TEXT DEFAULT NULL,
   `action_type_id` int(11) unsigned DEFAULT NULL,
+  `action_label` TEXT DEFAULT NULL,
   `keywords` TEXT DEFAULT NULL,
   `created` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated` DATETIME ON UPDATE CURRENT_TIMESTAMP,
