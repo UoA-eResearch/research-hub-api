@@ -105,6 +105,8 @@ public class SearchController {
                 new SqlParameter<>("limit", size),
                 new SqlParameter<>("offset", page * size));
 
+        statements.add(paginationStatement);
+
         // Create native queries and set parameters
         Query contentPaginatedQuery = SqlQuery.generate(entityManager, statements, null, "ListItem");
 
