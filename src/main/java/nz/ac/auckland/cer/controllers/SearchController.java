@@ -45,17 +45,24 @@ public class SearchController {
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
 
-        boolean orderByRelevance = true;
+        boolean userOrderByRelevance = true;
         if(orderBy != null) {
-            orderByRelevance = orderBy.equals("relevance");
+            userOrderByRelevance = orderBy.equals("relevance");
         }
 
-        List<String> objectTypes = Arrays.asList("content", "person", "policy");
+        boolean orderByRelevance = searchSearchText && userOrderByRelevance;
+
+        String orderByResult = "alphabetical";
+        if(orderByRelevance) {
+            orderByResult = "relevance";
+        }
 
         boolean searchAllTypes = true;
         boolean restrictToContent = false;
         boolean restrictToPerson = false;
         boolean restrictToPolicy = false;
+
+        List<String> objectTypes = Arrays.asList("content", "person", "policy");
 
         if (objectType != null && objectTypes.contains(objectType)) {
             restrictToContent = objectType.equals("content");
@@ -97,8 +104,8 @@ public class SearchController {
 
         statements.add(new SqlStatement(") AS sitewide", true));
 
-        statements.add(new SqlStatement("ORDER BY relevance DESC", searchSearchText && orderByRelevance));
-        statements.add(new SqlStatement("ORDER BY title ASC", !searchSearchText || !orderByRelevance));
+        statements.add(new SqlStatement("ORDER BY relevance DESC", orderByRelevance));
+        statements.add(new SqlStatement("ORDER BY title ASC", !orderByRelevance));
 
         SqlStatement paginationStatement = new SqlStatement("LIMIT :limit OFFSET :offset",
                 true,
@@ -118,7 +125,7 @@ public class SearchController {
         // Get data and return results
         List<ListItem> paginatedResults = contentPaginatedQuery.getResultList();
         int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
-        return new Page<>(paginatedResults, totalElements, orderBy, size, page);
+        return new Page<>(paginatedResults, totalElements, orderByResult, size, page);
     }
 
 }
