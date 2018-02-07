@@ -1,12 +1,17 @@
 package nz.ac.auckland.cer.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import nz.ac.auckland.cer.model.Content;
+import nz.ac.auckland.cer.model.ContentType;
 import nz.ac.auckland.cer.model.ListItem;
 import nz.ac.auckland.cer.model.Page;
+import nz.ac.auckland.cer.repository.ContentRepository;
 import nz.ac.auckland.cer.sql.SqlParameter;
 import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityManager;
@@ -19,13 +24,20 @@ import java.util.List;
 
 
 @RestController
-@Api(tags={"Search"}, description="Site wide search")
+@Api(tags = {"Search"}, description = "Site wide search")
 public class SearchController {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    SearchController() {}
+    private ObjectMapper objectMapper;
+    private ContentRepository contentRepository;
+
+    @Autowired
+    public SearchController(ObjectMapper objectMapper, ContentRepository contentRepository) {
+        this.objectMapper = objectMapper;
+        this.contentRepository = contentRepository;
+    }
 
     @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/search")
@@ -46,14 +58,14 @@ public class SearchController {
         boolean searchSearchText = !searchTextProcessed.equals("");
 
         boolean userOrderByRelevance = true;
-        if(orderBy != null) {
+        if (orderBy != null) {
             userOrderByRelevance = orderBy.equals("relevance");
         }
 
         boolean orderByRelevance = searchSearchText && userOrderByRelevance;
 
         String orderByResult = "alphabetical";
-        if(orderByRelevance) {
+        if (orderByRelevance) {
             orderByResult = "relevance";
         }
 
@@ -89,14 +101,14 @@ public class SearchController {
             searchConditions.add(true);
         }
 
-        if ((searchAllTypes|| restrictToPerson) && !excludePeople) {
+        if ((searchAllTypes || restrictToPerson) && !excludePeople) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
             statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PersonController.SELECT_SQL, PersonController.MATCH_SQL), true));
             statements.addAll(PersonController.getSearchStatements(searchText, orgUnits, contentItems, roleTypes));
             searchConditions.add(true);
         }
 
-        if ((searchAllTypes|| restrictToPolicy) && !excludePolicies) {
+        if ((searchAllTypes || restrictToPolicy) && !excludePolicies) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
             statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PolicyController.SELECT_SQL, PolicyController.MATCH_SQL), true));
             statements.addAll(PolicyController.getSearchStatements(searchText));
@@ -124,8 +136,35 @@ public class SearchController {
 
         // Get data and return results
         List<ListItem> paginatedResults = contentPaginatedQuery.getResultList();
-        int totalElements = ((BigInteger)contentCountQuery.getSingleResult()).intValue();
+        this.setCategories(paginatedResults);
+        int totalElements = ((BigInteger) contentCountQuery.getSingleResult()).intValue();
         return new Page<>(paginatedResults, totalElements, orderByResult, size, page);
     }
 
+    private void setCategories(List<ListItem> list) {
+
+        for (ListItem item : list) {
+            String type = item.getType();
+
+            if (type.equals("content")) {
+                Content content = contentRepository.findOne(item.getId());
+                ArrayList<String> categories = new ArrayList<>();
+
+                for (ContentType contentType : content.getContentTypes()) {
+                    categories.add(contentType.getNameUi());
+                }
+
+                item.setCategories(categories);
+            } else if (type.equals("person")) {
+                ArrayList<String> categories = new ArrayList<>();
+                categories.add("People");
+                item.setCategories(categories);
+            } else if (type.equals("policy")) {
+                ArrayList<String> categories = new ArrayList<>();
+                categories.add("Policy");
+                item.setCategories(categories);
+            }
+        }
+
+    }
 }

@@ -1,6 +1,8 @@
 package nz.ac.auckland.cer.model;
 
 
+import java.util.List;
+
 public class ListItem {
 
     private String type;
@@ -10,6 +12,7 @@ public class ListItem {
     private String image;
     private String url;
     private float relevance;
+    private List<String> categories;
 
     public ListItem(String type, Integer id, String title, String subtitle, String image, String url, float relevance) {
         this.type = type;
@@ -75,5 +78,13 @@ public class ListItem {
 
     public void setRelevance(float relevance) {
         this.relevance = relevance;
+    }
+
+    public List<String> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<String> categories) {
+        this.categories = categories;
     }
 }
