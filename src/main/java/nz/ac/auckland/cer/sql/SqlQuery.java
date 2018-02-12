@@ -13,11 +13,11 @@ public class SqlQuery {
         if(searchText != null) {
             processed = searchText.trim();
 
-            if(!processed.contains("\"") && !processed.contains("*")) {
-                processed += "*";
-            } else if(processed.contains("\"")) {
-                processed = processed.replace("*", "");
-            }
+//            if(!processed.contains("\"") && !processed.contains("*")) {
+//                processed += "*";
+//            } else if(processed.contains("\"")) {
+//                processed = processed.replace("*", "");
+//            }
         }
 
         return processed;

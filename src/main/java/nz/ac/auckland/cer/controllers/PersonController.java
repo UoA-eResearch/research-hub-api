@@ -31,7 +31,7 @@ public class PersonController extends AbstractSearchController {
 
     private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
-    static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
+    static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN NATURAL LANGUAGE MODE)";
     static String SELECT_SQL = "SELECT DISTINCT 'person' AS 'type', id, CONCAT(first_name, ' ', last_name) AS title, job_title AS 'subtitle', image, 'blank' AS 'url', match_sql * 2.0 AS relevance FROM person";
 
     private ObjectMapper objectMapper;

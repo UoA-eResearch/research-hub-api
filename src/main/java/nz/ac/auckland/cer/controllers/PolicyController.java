@@ -16,7 +16,7 @@ import java.util.ArrayList;
 @Api(tags = {"Person"}, description = "Operations on person")
 public class PolicyController extends AbstractSearchController {
 
-    static String MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN BOOLEAN MODE)";
+    static String MATCH_SQL = "MATCH (name, description) AGAINST (:search_text IN NATURAL LANGUAGE MODE)";
     static String SELECT_SQL = "SELECT DISTINCT 'policy' AS 'type', id, name AS 'title', description AS 'subtitle', image, url AS 'url', match_sql as relevance FROM policy";
 
     public PolicyController() {
