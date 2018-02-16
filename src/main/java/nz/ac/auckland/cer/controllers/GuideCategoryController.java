@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import nz.ac.auckland.cer.model.Content;
 import nz.ac.auckland.cer.model.GuideCategory;
 import nz.ac.auckland.cer.repository.GuideCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,23 @@ public class GuideCategoryController {
 
         SimpleFilterProvider filter = new SimpleFilterProvider();
         filter.setFailOnUnknownId(false);
+        filter.addFilter(GuideCategory.ENTITY_NAME, SimpleBeanPropertyFilter.serializeAllExcept("contentItems"));
         filter.addFilter("content", SimpleBeanPropertyFilter.filterOutAllExcept("id", "name"));
-        filter.addFilter("contentItems", SimpleBeanPropertyFilter.filterOutAllExcept("id", "name", "summary", "image"));
         String results = objectMapper.writer(filter).writeValueAsString(item);
+
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @CrossOrigin
+    @RequestMapping(method = RequestMethod.GET, value = "/guideCategory/{id}/contentItems")
+    @ApiOperation(value = "get a specific content item")
+    public ResponseEntity<String> getGuideCategoryContentItems(@PathVariable Integer id) throws JsonProcessingException {
+        final GuideCategory item = guideCategoryRepository.findOne(id);
+
+        SimpleFilterProvider filter = new SimpleFilterProvider();
+        filter.setFailOnUnknownId(false);
+        filter.addFilter(Content.ENTITY_NAME, SimpleBeanPropertyFilter.filterOutAllExcept("id", "name", "image"));
+        String results = objectMapper.writer(filter).writeValueAsString(item.getContentItems());
 
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
