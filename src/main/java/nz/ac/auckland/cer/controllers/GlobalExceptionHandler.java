@@ -33,7 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         responseBody.put("status", status.value());
         responseBody.put("statusText", status.getReasonPhrase());
 
-        logger.error("status: " + responseBody.toString() + ", statusText: " + status.getReasonPhrase());
+        logger.error("status: " + status.value() + ", statusText: " + status.getReasonPhrase());
         logger.error(ex.toString());
 
         return new ResponseEntity<>(responseBody.toString(), headers, status);

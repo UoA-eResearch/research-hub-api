@@ -215,11 +215,14 @@ public class RequestController {
                 response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + result.getString("sys_id"));
             } else if (!serviceNowResponse.isNull("error")) {
                 JSONObject error = serviceNowResponse.getJSONObject("error");
+                logger.error("status: " + httpStatus.value() + ", statusText: " + httpStatus.getReasonPhrase());
                 logger.error("ServiceNow internal error: " + error.toString());
             }
         } catch (IOException e) {
+            logger.error("status: " + httpStatus.value() + ", statusText: " + httpStatus.getReasonPhrase());
             logger.error("Error communicating with ServiceNow: " + e.toString());
         } catch (JSONException e) {
+            logger.error("status: " + httpStatus.value() + ", statusText: " + httpStatus.getReasonPhrase());
             logger.error("Error reading ServiceNow response: " + e.toString());
         }
 
@@ -233,9 +236,10 @@ public class RequestController {
         response.put("status", httpStatus.value());
         response.put("statusText", httpStatus.getReasonPhrase());
         response.put("error", "User is not authenticated with UoA Single Sign On");
-        response.put("message", e.getMessage());
-        response.put("detail", e.getStackTrace());
-        logger.error(response.toString());
+
+
+        logger.error("status: " + httpStatus.value() + ", statusText: " + httpStatus.getReasonPhrase());
+        logger.error("User is not authenticated with UoA Single Sign On: " + e.toString());
 
         return new ResponseEntity<>(response.toString(), httpStatus);
     }
