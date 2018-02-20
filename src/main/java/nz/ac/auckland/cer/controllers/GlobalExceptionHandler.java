@@ -29,17 +29,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        if(HttpStatus.INTERNAL_SERVER_ERROR.equals(status)) {
-            request.setAttribute("javax.servlet.error.exception", ex, 0);
-        }
-
         JSONObject responseBody = new JSONObject();
         responseBody.put("status", status.value());
         responseBody.put("statusText", status.getReasonPhrase());
-        responseBody.put("error", ex.getMessage());
-        responseBody.put("message", ex.getStackTrace());
 
-        logger.error(responseBody.toString());
+        logger.error("status: " + responseBody.toString() + ", statusText: " + status.getReasonPhrase());
         logger.error(ex.toString());
 
         return new ResponseEntity<>(responseBody.toString(), headers, status);
