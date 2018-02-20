@@ -215,21 +215,12 @@ public class RequestController {
                 response.put("ticketUrl", baseUrl + "/nav_to.do?uri=/u_request.do?sys_id=" + result.getString("sys_id"));
             } else if (!serviceNowResponse.isNull("error")) {
                 JSONObject error = serviceNowResponse.getJSONObject("error");
-                response.put("error", "ServiceNow internal error");
-                response.put("message", error.getString("message"));
-                response.put("detail", error.getString("detail"));
-                logger.error(response.toString());
+                logger.error("ServiceNow internal error: " + error.toString());
             }
         } catch (IOException e) {
-            response.put("error", "Error communicating with ServiceNow");
-            response.put("message", e.getMessage());
-            response.put("detail", e.getStackTrace());
-            logger.error(response.toString());
+            logger.error("Error communicating with ServiceNow: " + e.toString());
         } catch (JSONException e) {
-            response.put("error", "Error reading ServiceNow response");
-            response.put("message", e.getMessage());
-            response.put("detail", e.getStackTrace());
-            logger.error(response.toString());
+            logger.error("Error reading ServiceNow response: " + e.toString());
         }
 
         return new ResponseEntity<>(response.toString(), httpStatus);
