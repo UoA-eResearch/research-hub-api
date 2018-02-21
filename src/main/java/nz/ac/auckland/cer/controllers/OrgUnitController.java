@@ -31,7 +31,6 @@ public class OrgUnitController {
         this.orgUnitRepository = orgUnitRepository;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit")
     @ApiOperation(value = "get a list of org units")
     public ResponseEntity<String> getOrgUnit(@RequestParam Integer page, @RequestParam Integer size) throws JsonProcessingException {
@@ -49,7 +48,6 @@ public class OrgUnitController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/orgUnit/{id}")
     @ApiOperation(value = "get a specific organisation unit")
     public ResponseEntity<String> getOrgUnit(@PathVariable Integer id) throws JsonProcessingException {

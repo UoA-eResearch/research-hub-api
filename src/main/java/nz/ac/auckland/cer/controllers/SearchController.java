@@ -39,7 +39,6 @@ public class SearchController {
         this.contentRepository = contentRepository;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ApiOperation(value = "search for content items")
     public Page<ListItem> getSearchResults(@RequestParam Integer page,

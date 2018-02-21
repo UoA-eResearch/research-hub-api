@@ -115,7 +115,6 @@ public class ContentController extends AbstractSearchController {
         return statements;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content")
     @ApiOperation(value = "search for content items")
     public Page<ListItem> getContent(@RequestParam Integer page,
@@ -132,7 +131,6 @@ public class ContentController extends AbstractSearchController {
                 researchPhases, people, roleTypes, orgUnits));
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content/{id}")
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getContent(@PathVariable Integer id) throws JsonProcessingException {
@@ -166,7 +164,6 @@ public class ContentController extends AbstractSearchController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/content/{id}/similar")
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getSimilarContent(@PathVariable Integer id) throws JsonProcessingException {

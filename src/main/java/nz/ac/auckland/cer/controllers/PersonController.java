@@ -90,7 +90,6 @@ public class PersonController extends AbstractSearchController {
         return statements;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person")
     @ApiOperation(value = "search for people")
     public Page<ListItem> getPerson(@RequestParam Integer page,
@@ -105,7 +104,6 @@ public class PersonController extends AbstractSearchController {
                 contentItems, roleTypes));
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/person/{id}")
     @ApiOperation(value = "get a specific person")
     public ResponseEntity<String> getPerson(@PathVariable Integer id) throws JsonProcessingException {

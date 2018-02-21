@@ -33,7 +33,6 @@ public class PolicyController extends AbstractSearchController {
         return statements;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/policy")
     @ApiOperation(value = "search for policies")
     public Page<ListItem> getPolicy(@RequestParam Integer page,

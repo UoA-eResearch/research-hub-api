@@ -33,21 +33,18 @@ public class CategoryController {
         this.roleTypeRepository = roleTypeRepository;
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/contentType")
     @ApiOperation(value = "get all content types")
     public List<ContentType> getContentType() {
         return contentTypeRepository.findAll();
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/researchPhase")
     @ApiOperation(value = "get all research phases")
     public List<ResearchPhase> getResearchPhase() {
         return researchPhaseRepository.findAll();
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/category/roleType")
     @ApiOperation(value = "get all role types")
     public List<RoleType> getRoleType() {

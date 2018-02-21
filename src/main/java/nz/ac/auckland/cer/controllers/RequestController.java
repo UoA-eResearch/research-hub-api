@@ -131,7 +131,6 @@ public class RequestController {
      * Create ServiceNow VM Consultation ticket
      */
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/vm")
     ResponseEntity<Object> createServiceRequest(@RequestAttribute(value = "uid") String requestorUpi,
                                                 @RequestAttribute(value = "displayName") String displayName,
@@ -151,7 +150,6 @@ public class RequestController {
      * Create ServiceNow Data Consultation ticket
      */
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.POST, value = "/serviceRequest/storage")
     ResponseEntity<Object> createRequestStorage(@RequestAttribute(value = "uid") String requestorUpi,
                                                 @RequestAttribute(value = "displayName") String displayName,

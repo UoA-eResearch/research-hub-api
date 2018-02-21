@@ -29,7 +29,7 @@ public class GuideCategoryController {
         this.guideCategoryRepository = guideCategoryRepository;
     }
 
-    @CrossOrigin
+
     @RequestMapping(method = RequestMethod.GET, value = "/guideCategory/{id}")
     @ApiOperation(value = "get a specific guide")
     public ResponseEntity<String> getGuideCategory(@PathVariable Integer id) throws JsonProcessingException {
@@ -44,7 +44,6 @@ public class GuideCategoryController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/guideCategory/{id}/contentItems")
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getGuideCategoryContentItems(@PathVariable Integer id) throws JsonProcessingException {
