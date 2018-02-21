@@ -22,7 +22,7 @@ services:
       - CER_DATA_WATCH_LIST=${CER_DATA_WATCH_LIST}
       - https_proxy=${https_proxy}
     volumes:
-      - ./application.properties:/application.properties
+      - ./research-hub-api/application.properties:/application.properties
       - ${DATA_DIR}/assets:/assets
     depends_on:
       - "db"
