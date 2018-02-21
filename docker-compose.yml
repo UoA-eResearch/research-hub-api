@@ -1,0 +1,29 @@
+version: '3.0'
+services:
+  api:
+    build:
+      context: ./research-hub-api/
+      args:
+        - http_proxy
+        - https_proxy
+    environment:
+      - DB_MYSQL_DATABASE=${DB_MYSQL_DATABASE}
+      - DB_MYSQL_PASSWORD=${DB_MYSQL_PASSWORD}
+      - DB_MYSQL_USER=${DB_MYSQL_USER}
+      - SN_BASE_URL=${SN_BASE_URL}
+      - SN_USER=${SN_USER}
+      - SN_PASSWORD=${SN_PASSWORD}
+      - CER_VM_CMDB_CI_ID=${CER_VM_CMDB_CI_ID}
+      - CER_VM_ASSIGNMENT_GROUP_ID=${CER_VM_ASSIGNMENT_GROUP_ID}
+      - CER_VM_BUSINESS_SERVICE_ID=${CER_VM_BUSINESS_SERVICE_ID}
+      - CER_VM_WATCH_LIST=${CER_VM_WATCH_LIST}
+      - CER_DATA_ASSIGNMENT_GROUP_ID=${CER_DATA_ASSIGNMENT_GROUP_ID}
+      - CER_DATA_BUSINESS_SERVICE_ID=${CER_DATA_BUSINESS_SERVICE_ID}
+      - CER_DATA_WATCH_LIST=${CER_DATA_WATCH_LIST}
+      - https_proxy=${https_proxy}
+    volumes:
+      - ./research-hub-api/application.properties:/application.properties
+      - ${DATA_DIR}/assets:/assets
+    depends_on:
+      - "db"
+    restart: always
