@@ -28,7 +28,6 @@ import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -119,8 +118,7 @@ public class RequestController {
     private void loadRequestConfigurations() throws IOException {
         if (requestConfigHashMap.size() == 0) {
             ObjectMapper mapper = new ObjectMapper();
-            List<RequestConfig> requestConfigList = mapper.readValue(new File(requestsConfigFile), new TypeReference<List<RequestConfig>>() {
-            });
+            RequestConfig[] requestConfigList = mapper.readValue(new File(requestsConfigFile), RequestConfig[].class);
 
             for (RequestConfig requestConfig : requestConfigList) {
                 requestConfigHashMap.put(requestConfig.getId(), requestConfig);
