@@ -12,6 +12,10 @@ public class RequestConfig {
     private String businessServiceId;
     private String[] watchList;
 
+    public RequestConfig() {
+
+    }
+
     public RequestConfig(String id, String shortDescription, String category, String subcategory, String cmdbCiId, String assignmentGroupId, String businessServiceId, String[] watchList) {
         this.id = id;
         this.shortDescription = shortDescription;
