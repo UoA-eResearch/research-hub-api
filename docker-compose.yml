@@ -13,13 +13,7 @@ services:
       - SN_BASE_URL=${SN_BASE_URL}
       - SN_USER=${SN_USER}
       - SN_PASSWORD=${SN_PASSWORD}
-      - CER_VM_CMDB_CI_ID=${CER_VM_CMDB_CI_ID}
-      - CER_VM_ASSIGNMENT_GROUP_ID=${CER_VM_ASSIGNMENT_GROUP_ID}
-      - CER_VM_BUSINESS_SERVICE_ID=${CER_VM_BUSINESS_SERVICE_ID}
-      - CER_VM_WATCH_LIST=${CER_VM_WATCH_LIST}
-      - CER_DATA_ASSIGNMENT_GROUP_ID=${CER_DATA_ASSIGNMENT_GROUP_ID}
-      - CER_DATA_BUSINESS_SERVICE_ID=${CER_DATA_BUSINESS_SERVICE_ID}
-      - CER_DATA_WATCH_LIST=${CER_DATA_WATCH_LIST}
+      - SN_REQUESTS_CONFIG_FILE=${SN_REQUESTS_CONFIG_FILE}
       - https_proxy=${https_proxy}
     volumes:
       - ./research-hub-api/application.properties:/application.properties

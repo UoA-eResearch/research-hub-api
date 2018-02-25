@@ -2,6 +2,7 @@ package nz.ac.auckland.cer.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import nz.ac.auckland.cer.model.RequestConfig;
 import okhttp3.*;
 import okhttp3.ResponseBody;
 import org.antlr.stringtemplate.StringTemplate;
@@ -19,17 +20,21 @@ import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
 @RestController
 public class RequestController {
+
 
     private static final Logger logger = LoggerFactory.getLogger(RequestController.class);
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -45,29 +50,13 @@ public class RequestController {
     @Value("${service-now.password}")
     private String password;
 
+    @Value("${service-now.requests-config-file}")
+    private String requestsConfigFile;
+
     @Value("${ok-http.proxy}")
     private String proxy;
 
-    @Value("${service-now.cer.vm.cmdb-ci}")
-    private String cerCmdbCiId;
-
-    @Value("${service-now.cer.vm.assignment-group-id}")
-    private String cerVmAssignmentGroupId;
-
-    @Value("${service-now.cer.vm.business-service-id}")
-    private String cerVmBusinessServiceId;
-
-    @Value("${service-now.cer.vm.watch-list}")
-    private String[] cerVmWatchList;
-
-    @Value("${service-now.cer.data.assignment-group-id}")
-    private String cerDataAssignmentGroupId;
-
-    @Value("${service-now.cer.data.business-service-id}")
-    private String cerDataBusinessServiceId;
-
-    @Value("${service-now.cer.data.watch-list}")
-    private String[] cerDataWatchList;
+    private HashMap<String, RequestConfig> requestConfigHashMap = new HashMap<>();
 
     RequestController() {
 
@@ -127,6 +116,24 @@ public class RequestController {
         return "";
     }
 
+    private void loadRequestConfigurations() throws IOException {
+        if (requestConfigHashMap.size() == 0) {
+            ObjectMapper mapper = new ObjectMapper();
+            List<RequestConfig> requestConfigList = mapper.readValue(new File(requestsConfigFile), new TypeReference<List<RequestConfig>>() {
+            });
+
+            for (RequestConfig requestConfig : requestConfigList) {
+                requestConfigHashMap.put(requestConfig.getId(), requestConfig);
+            }
+        }
+    }
+
+    private RequestConfig getRequestConfig(String key) throws IOException {
+        this.loadRequestConfigurations();
+
+        return requestConfigHashMap.get(key);
+    }
+
     /*
      * Create ServiceNow VM Consultation ticket
      */
@@ -136,14 +143,8 @@ public class RequestController {
                                                 @RequestAttribute(value = "displayName") String displayName,
                                                 @RequestAttribute(value = "mail") String mail,
                                                 @RequestBody String body) throws IOException {
-        StringTemplate template = this.getTemplate("servicenow_request_vm.tpl", body);
-        template.setAttribute("requestorUpi", requestorUpi);
-        template.setAttribute("displayName", displayName);
-        template.setAttribute("mail", this.getPrimaryEmail(mail));
-        String shortDescription = "Research VM consultation request: " + requestorUpi;
-        String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, "Research IT", "Research Computing Platforms", cerCmdbCiId, cerVmAssignmentGroupId, cerVmBusinessServiceId, shortDescription, output, cerVmWatchList);
+        return this.createRequest("vm", requestorUpi, displayName, mail, body);
     }
 
     /*
@@ -155,15 +156,25 @@ public class RequestController {
                                                 @RequestAttribute(value = "displayName") String displayName,
                                                 @RequestAttribute(value = "mail") String mail,
                                                 @RequestBody String body) throws IOException {
+
+        return this.createRequest("storage", requestorUpi, displayName, mail, body);
+    }
+
+    private ResponseEntity<Object> createRequest(String requestConfigKey, String requestorUpi, String displayName,
+                                                 String mail, String body) throws IOException {
+        RequestConfig requestConfig = this.getRequestConfig(requestConfigKey);
+
         // Generate comments based on template
-        StringTemplate template = this.getTemplate("servicenow_request_storage.tpl", body);
+        StringTemplate template = this.getTemplate("service_request_templates/" + requestConfigKey + ".tpl", body);
         template.setAttribute("requestorUpi", requestorUpi);
         template.setAttribute("displayName", displayName);
         template.setAttribute("mail", this.getPrimaryEmail(mail));
-        String shortDescription = "Storage request: " + requestorUpi;
+        String shortDescription = requestConfig.getShortDescription() + ": " + requestorUpi;
         String output = template.toString();
 
-        return this.sendServiceNowRequest(requestorUpi, "Research IT" , "Storage & Data Management", "", cerDataAssignmentGroupId, cerDataBusinessServiceId, shortDescription, output, cerDataWatchList);
+        return this.sendServiceNowRequest(requestorUpi, requestConfig.getCategory(), requestConfig.getSubcategory(),
+                requestConfig.getCmdbCiId(), requestConfig.getAssignmentGroupId(), requestConfig.getBusinessServiceId(),
+                shortDescription, output, requestConfig.getWatchList());
     }
 
     private StringTemplate getTemplate(String templateName, String body) throws IOException {
@@ -171,13 +182,16 @@ public class RequestController {
         String templateFile = new String(FileCopyUtils.copyToByteArray(res.getInputStream()), StandardCharsets.UTF_8);
         StringTemplate template = new StringTemplate(templateFile, DefaultTemplateLexer.class);
 
-        Map<String, Object> objectMap = new ObjectMapper().readValue(body, new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> objectMap = new ObjectMapper().readValue(body, new TypeReference<Map<String, Object>>() {
+        });
         template.setAttributes(objectMap);
 
         return template;
     }
 
-    private ResponseEntity<Object> sendServiceNowRequest(String requestorUpi, String category, String subcategory, String cmdbCiId, String assignmentGroup, String businessServiceId, String shortDescription, String comments, String[] watchList) throws IOException {
+    private ResponseEntity<Object> sendServiceNowRequest(String requestorUpi, String category, String subcategory,
+                                                         String cmdbCiId, String assignmentGroup, String businessServiceId,
+                                                         String shortDescription, String comments, String[] watchList) throws IOException {
         this.buildClient();
 
         String url = baseUrl + "/api/now/table/u_request";
@@ -234,7 +248,6 @@ public class RequestController {
         response.put("status", httpStatus.value());
         response.put("statusText", httpStatus.getReasonPhrase());
         response.put("error", "User is not authenticated with UoA Single Sign On");
-
 
         logger.error("status: " + httpStatus.value() + ", statusText: " + httpStatus.getReasonPhrase());
         logger.error("User is not authenticated with UoA Single Sign On: " + e.toString());
