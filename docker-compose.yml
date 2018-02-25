@@ -17,6 +17,7 @@ services:
       - https_proxy=${https_proxy}
     volumes:
       - ./research-hub-api/application.properties:/application.properties
+      - ${DATA_DIR}/config/requests-config.json:/requests-config.json
       - ${DATA_DIR}/assets:/assets
     depends_on:
       - "db"
