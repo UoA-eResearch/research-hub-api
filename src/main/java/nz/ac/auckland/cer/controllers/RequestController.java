@@ -167,7 +167,7 @@ public class RequestController {
         template.setAttribute("requestorUpi", requestorUpi);
         template.setAttribute("displayName", displayName);
         template.setAttribute("mail", this.getPrimaryEmail(mail));
-        String shortDescription = requestConfig.getShortDescription() + ": " + requestorUpi;
+        String shortDescription = requestConfig.getShortDescription() + ": " + displayName + ", " + requestorUpi;
         String output = template.toString();
 
         return this.sendServiceNowRequest(requestorUpi, requestConfig.getCategory(), requestConfig.getSubcategory(),
