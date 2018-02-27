@@ -10,14 +10,8 @@ services:
       - DB_MYSQL_DATABASE=${DB_MYSQL_DATABASE}
       - DB_MYSQL_PASSWORD=${DB_MYSQL_PASSWORD}
       - DB_MYSQL_USER=${DB_MYSQL_USER}
-      - SN_BASE_URL=${SN_BASE_URL}
-      - SN_USER=${SN_USER}
-      - SN_PASSWORD=${SN_PASSWORD}
-      - SN_REQUESTS_CONFIG_FILE=${SN_REQUESTS_CONFIG_FILE}
-      - https_proxy=${https_proxy}
     volumes:
       - ./research-hub-api/application.properties:/application.properties
-      - ${DATA_DIR}/config/requests-config.json:/requests-config.json
       - ${DATA_DIR}/assets:/assets
     depends_on:
       - "db"
