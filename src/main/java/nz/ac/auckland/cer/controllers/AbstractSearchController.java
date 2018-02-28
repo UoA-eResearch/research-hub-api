@@ -41,8 +41,7 @@ public abstract class AbstractSearchController {
         page = page < 0 ? 0 : page;
         size = size < 1 ? 1 : size;
 
-        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
-        boolean searchSearchText = !searchTextProcessed.equals("");
+        boolean searchSearchText = !searchText.equals("");
 
         boolean orderByRelevance = true;
         if(orderBy != null) {

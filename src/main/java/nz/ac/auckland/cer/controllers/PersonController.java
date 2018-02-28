@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class PersonController extends AbstractSearchController {
 
     private static final Logger logger = LoggerFactory.getLogger(PersonController.class);
 
-    static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN NATURAL LANGUAGE MODE)";
+    static String MATCH_SQL = "MATCH (title, first_name, last_name, job_title) AGAINST (:search_text IN BOOLEAN MODE)";
     static String SELECT_SQL = "SELECT DISTINCT 'person' AS 'type', id, CONCAT(first_name, ' ', last_name) AS title, job_title AS 'subtitle', image, 'blank' AS 'url', match_sql * 2.0 AS relevance FROM person";
 
     private ObjectMapper objectMapper;
@@ -45,8 +46,7 @@ public class PersonController extends AbstractSearchController {
     }
 
     static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> orgUnits, List<Integer> contentItems, List<Integer> roleTypes) {
-        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
-        boolean searchSearchText = !searchTextProcessed.equals("");
+        boolean searchSearchText = !searchText.equals("");
 
         List<Boolean> searchConditions = new ArrayList<>();
         boolean searchOrgUnits = orgUnits != null && orgUnits.size() > 0;
@@ -65,7 +65,7 @@ public class PersonController extends AbstractSearchController {
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement(MATCH_SQL,
                 searchSearchText,
-                new SqlParameter<>("search_text", searchTextProcessed)));
+                new SqlParameter<>("search_text", searchText)));
 
         statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchOrgUnits));
 
@@ -98,9 +98,11 @@ public class PersonController extends AbstractSearchController {
                                             @RequestParam(required = false) String searchText,
                                             @RequestParam(required = false) List<Integer> orgUnits,
                                             @RequestParam(required = false) List<Integer> contentItems,
-                                            @RequestParam(required = false) List<Integer> roleTypes) {
+                                            @RequestParam(required = false) List<Integer> roleTypes) throws UnsupportedEncodingException {
 
-        return this.getSearchResults("person", page, size, orderBy, searchText, PersonController.getSearchStatements(searchText, orgUnits,
+        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
+
+        return this.getSearchResults("person", page, size, orderBy, searchTextProcessed, PersonController.getSearchStatements(searchTextProcessed, orgUnits,
                 contentItems, roleTypes));
     }
 

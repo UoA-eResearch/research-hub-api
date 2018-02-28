@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class ContentController extends AbstractSearchController {
     private ContentRepository contentRepository;
 
     static String SELECT_SQL = "SELECT DISTINCT 'content' AS 'type', id, name AS 'title', summary AS 'subtitle', image, 'blank' AS 'url', match_sql * 100.0 AS relevance FROM content";
-    static String MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN NATURAL LANGUAGE MODE)";
+    static String MATCH_SQL = "MATCH (name, summary, description, actionable_info, additional_info, keywords) AGAINST (:search_text IN BOOLEAN MODE)";
 
     @Autowired
     public ContentController(ObjectMapper objectMapper, ContentRepository contentRepository) {
@@ -46,8 +47,7 @@ public class ContentController extends AbstractSearchController {
 
     static ArrayList<SqlStatement> getSearchStatements(String searchText, List<Integer> contentTypes, List<Integer> researchPhases,
                                                          List<Integer> people, List<Integer> roleTypes, List<Integer> orgUnits) {
-        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
-        boolean searchSearchText = !searchTextProcessed.equals("");
+        boolean searchSearchText = !searchText.equals("");
 
         boolean searchContentTypes = contentTypes != null && contentTypes.size() > 0;
         boolean searchResearchPhases = researchPhases != null && researchPhases.size() > 0;
@@ -75,7 +75,7 @@ public class ContentController extends AbstractSearchController {
         searchConditions.add(searchSearchText);
         statements.add(new SqlStatement(MATCH_SQL,
                 searchSearchText,
-                new SqlParameter<>("search_text", searchTextProcessed)));
+                new SqlParameter<>("search_text", searchText)));
 
         statements.add(new SqlStatement("AND", searchConditions.contains(true) && searchContentTypes));
 
@@ -125,9 +125,11 @@ public class ContentController extends AbstractSearchController {
                                              @RequestParam(required = false) List<Integer> researchPhases,
                                              @RequestParam(required = false) List<Integer> people,
                                              @RequestParam(required = false) List<Integer> roleTypes,
-                                             @RequestParam(required = false) List<Integer> orgUnits) {
+                                             @RequestParam(required = false) List<Integer> orgUnits) throws UnsupportedEncodingException {
 
-        return this.getSearchResults("content", page, size, orderBy, searchText, ContentController.getSearchStatements(searchText, contentTypes,
+        String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
+
+        return this.getSearchResults("content", page, size, orderBy, searchTextProcessed, ContentController.getSearchStatements(searchTextProcessed, contentTypes,
                 researchPhases, people, roleTypes, orgUnits));
     }
 

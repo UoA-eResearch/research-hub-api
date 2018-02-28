@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,7 @@ public class SearchController {
         this.contentRepository = contentRepository;
     }
 
+    @CrossOrigin
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     @ApiOperation(value = "search for content items")
     public Page<ListItem> getSearchResults(@RequestParam Integer page,
@@ -51,7 +53,7 @@ public class SearchController {
                                            @RequestParam(required = false) List<Integer> researchPhases,
                                            @RequestParam(required = false) List<Integer> contentItems,
                                            @RequestParam(required = false) List<Integer> roleTypes,
-                                           @RequestParam(required = false) List<Integer> contentTypes) {
+                                           @RequestParam(required = false) List<Integer> contentTypes) throws UnsupportedEncodingException {
 
         String searchTextProcessed = SqlQuery.preProcessSearchText(searchText);
         boolean searchSearchText = !searchTextProcessed.equals("");
@@ -96,21 +98,21 @@ public class SearchController {
 
         if (searchAllTypes || restrictToContent) {
             statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, ContentController.SELECT_SQL, ContentController.MATCH_SQL), true));
-            statements.addAll(ContentController.getSearchStatements(searchText, contentTypes, researchPhases, people, roleTypes, orgUnits));
+            statements.addAll(ContentController.getSearchStatements(searchTextProcessed, contentTypes, researchPhases, people, roleTypes, orgUnits));
             searchConditions.add(true);
         }
 
         if ((searchAllTypes || restrictToPerson) && !excludePeople) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
             statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PersonController.SELECT_SQL, PersonController.MATCH_SQL), true));
-            statements.addAll(PersonController.getSearchStatements(searchText, orgUnits, contentItems, roleTypes));
+            statements.addAll(PersonController.getSearchStatements(searchTextProcessed, orgUnits, contentItems, roleTypes));
             searchConditions.add(true);
         }
 
         if ((searchAllTypes || restrictToPolicy) && !excludePolicies) {
             statements.add(new SqlStatement("UNION", searchConditions.contains(true)));
             statements.add(new SqlStatement(AbstractSearchController.getSelectStatement(searchSearchText, PolicyController.SELECT_SQL, PolicyController.MATCH_SQL), true));
-            statements.addAll(PolicyController.getSearchStatements(searchText));
+            statements.addAll(PolicyController.getSearchStatements(searchTextProcessed));
         }
 
         statements.add(new SqlStatement(") AS sitewide", true));

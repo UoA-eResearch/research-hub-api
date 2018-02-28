@@ -1,23 +1,29 @@
 package nz.ac.auckland.cer.sql;
 
-
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+
 
 public class SqlQuery {
 
-    public static String preProcessSearchText(String searchText) {
+    public static String preProcessSearchText(String searchTextEncoded) throws UnsupportedEncodingException {
         String processed = "";
 
-        if(searchText != null) {
-            processed = searchText.trim();
+        if (searchTextEncoded != null) {
+            String decoded = URLDecoder.decode(searchTextEncoded, "UTF-8");
 
-//            if(!processed.contains("\"") && !processed.contains("*")) {
-//                processed += "*";
-//            } else if(processed.contains("\"")) {
-//                processed = processed.replace("*", "");
-//            }
+            String[] tokens = decoded.split("\\s+(?=\\S{1})");
+
+            for (int i = 0; i < tokens.length; i++) {
+                tokens[i] = tokens[i].replaceAll("[-+><()~*\"@]", " ");
+            }
+
+            processed = "+" + String.join("+", tokens);
+            processed = processed.trim();
+            processed += "*";
         }
 
         return processed;
