@@ -1,6 +1,5 @@
 # Research Hub API
-
-The Research Hub REST API project. First follow the instructions on the [Research Hub Deploy project](https://github.com/UoA-eResearch/research-hub-deploy) to run the research-hub-db Docker container.
+Before running the Research Hub API, follow the instructions on the [Research Hub Deploy project](https://github.com/UoA-eResearch/research-hub-deploy#research-hub-deploy) to run the research-hub-db Docker container.
 
 ## Requirements
 * Spring Boot
