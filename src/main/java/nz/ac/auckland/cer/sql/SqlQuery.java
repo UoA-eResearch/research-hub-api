@@ -13,10 +13,10 @@ public class SqlQuery {
         String processed = "";
 
         if (searchTextEncoded != null) {
-            String decoded = URLDecoder.decode(searchTextEncoded, "UTF-8");
+            String decoded = URLDecoder.decode(searchTextEncoded, "UTF-8").trim();
 
             if (!decoded.equals("")) {
-                String[] tokens = decoded.trim().split("\\s+(?=\\S{1})");
+                String[] tokens = decoded.split("\\s+(?=\\S{1})");
 
                 for (int i = 0; i < tokens.length; i++) {
                     tokens[i] = tokens[i].replaceAll("[-+><()~*\"@]", " ");
