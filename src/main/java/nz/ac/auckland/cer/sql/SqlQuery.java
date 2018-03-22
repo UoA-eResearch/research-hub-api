@@ -15,15 +15,17 @@ public class SqlQuery {
         if (searchTextEncoded != null) {
             String decoded = URLDecoder.decode(searchTextEncoded, "UTF-8");
 
-            String[] tokens = decoded.trim().split("\\s+(?=\\S{1})");
+            if (!decoded.equals("")) {
+                String[] tokens = decoded.trim().split("\\s+(?=\\S{1})");
 
-            for (int i = 0; i < tokens.length; i++) {
-                tokens[i] = tokens[i].replaceAll("[-+><()~*\"@]", " ");
+                for (int i = 0; i < tokens.length; i++) {
+                    tokens[i] = tokens[i].replaceAll("[-+><()~*\"@]", " ");
+                }
+
+                processed = "+" + String.join("+", tokens);
+                processed = processed.trim();
+                processed += "*";
             }
-
-            processed = "+" + String.join("+", tokens);
-            processed = processed.trim();
-            processed += "*";
         }
 
         return processed;
