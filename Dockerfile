@@ -1,12 +1,12 @@
 FROM            java:8
-MAINTAINER      James Diprose "j.diprose@auckland.ac.nz"
+MAINTAINER      Sam Kavanagh "s.kavanagh@auckland.ac.nz"
 
 ARG             http_proxy
 ARG             https_proxy
 
 # Download maven
-ENV             MAVEN_VERSION 3.5.2
-ENV             MAVEN_CHECKSUM 948110de4aab290033c23bf4894f7d9a
+ENV             MAVEN_VERSION 3.5.3
+ENV             MAVEN_CHECKSUM 51025855d5a7456fc1a67666fbef29de
 
 RUN             wget --no-verbose -O /apache-maven.tar.gz http://www-us.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
 
