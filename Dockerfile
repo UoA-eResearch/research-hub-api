@@ -1,22 +1,8 @@
-FROM            java:8
+FROM            maven:3.5.4-jdk-8
 MAINTAINER      Sam Kavanagh "s.kavanagh@auckland.ac.nz"
 
 ARG             http_proxy
 ARG             https_proxy
-
-# Download maven
-ENV             MAVEN_VERSION 3.5.3
-ENV             MAVEN_CHECKSUM 51025855d5a7456fc1a67666fbef29de
-
-RUN             wget --no-verbose -O /apache-maven.tar.gz http://www-us.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
-
-# Verify checksum
-RUN             echo "$MAVEN_CHECKSUM /apache-maven.tar.gz" | md5sum -c
-
-# Install maven
-RUN             tar xzf /apache-maven.tar.gz -C /opt/ && mv /opt/apache-maven-$MAVEN_VERSION /opt/maven
-RUN		        echo '#!/bin/bash\n' > /usr/local/bin/mvn
-RUN		        chmod 755 /usr/local/bin/mvn
 
 # Configure proxy for maven on UoA VMs
 RUN		        if [ "$http_proxy" != "" ]; then \
