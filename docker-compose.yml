@@ -1,18 +1,7 @@
 version: '3.0'
 services:
   api:
-    build:
-      context: ./research-hub-api/
-      args:
-        - http_proxy
-        - https_proxy
     environment:
-      - DB_MYSQL_DATABASE=${DB_MYSQL_DATABASE}
-      - DB_MYSQL_PASSWORD=${DB_MYSQL_PASSWORD}
-      - DB_MYSQL_USER=${DB_MYSQL_USER}
-    volumes:
-      - ./research-hub-api/deploy.properties:/application.properties
-      - ${DATA_DIR}/assets:/assets
-    depends_on:
-      - "db"
-    restart: always
+      - DB_MYSQL_DATABASE
+      - DB_MYSQL_PASSWORD
+      - DB_MYSQL_USER
