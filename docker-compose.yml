@@ -1,6 +1,11 @@
 version: '3.0'
 services:
   api:
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
     environment:
       - DB_MYSQL_DATABASE
       - DB_MYSQL_PASSWORD
