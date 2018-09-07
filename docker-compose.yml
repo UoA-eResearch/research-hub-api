@@ -10,3 +10,5 @@ services:
       - DB_MYSQL_DATABASE
       - DB_MYSQL_PASSWORD
       - DB_MYSQL_USER
+    volumes:
+      - ${HUB_PATH}/assets:/assets
