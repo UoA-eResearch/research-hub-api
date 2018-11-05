@@ -26,6 +26,7 @@ RUN		if [ -z $http_proxy ]; then \
 
 # Copy src files and build project
 COPY            /src /research-hub-api/src
+COPY            application.properties /
 RUN             mvn -o package
 RUN             mv target/app.jar /app.jar
 
