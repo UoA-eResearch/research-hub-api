@@ -133,7 +133,7 @@ public class ContentController extends AbstractSearchController {
                 researchPhases, people, roleTypes, orgUnits));
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}", produces={"application/json; charset=UTF-8"})
+    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}", produces={"application/json"})
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getContent(@PathVariable Integer id) throws JsonProcessingException {
         final Content item = contentRepository.findOne(id);
