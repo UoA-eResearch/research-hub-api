@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.http.MediaType;
 import java.util.List;
 
 
 @RestController
+@RequestMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Api(tags = {"Category"}, description = "Operations on category")
 public class CategoryController {
 

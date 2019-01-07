@@ -14,6 +14,7 @@ import nz.ac.auckland.cer.sql.SqlStatement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.MediaType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -25,6 +26,7 @@ import java.util.List;
 
 
 @RestController
+@RequestMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Api(tags = {"Search"}, description = "Site wide search")
 public class SearchController {
 

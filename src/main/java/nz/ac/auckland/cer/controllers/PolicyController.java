@@ -9,11 +9,13 @@ import nz.ac.auckland.cer.sql.SqlQuery;
 import nz.ac.auckland.cer.sql.SqlStatement;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.MediaType;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 
 @RestController
+@RequestMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Api(tags = {"Person"}, description = "Operations on person")
 public class PolicyController extends AbstractSearchController {
 

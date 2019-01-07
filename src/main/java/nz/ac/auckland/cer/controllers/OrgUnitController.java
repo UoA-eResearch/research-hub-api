@@ -15,10 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@RequestMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Api(tags={"OrgUnit"}, description="Operations on an organisational unit")
 public class OrgUnitController {
 

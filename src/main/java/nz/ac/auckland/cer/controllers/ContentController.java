@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -27,6 +28,7 @@ import java.util.List;
 
 
 @RestController
+@RequestMapping(produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
 @Api(tags={"Content"}, description="Operations on content")
 public class ContentController extends AbstractSearchController {
 
@@ -133,7 +135,7 @@ public class ContentController extends AbstractSearchController {
                 researchPhases, people, roleTypes, orgUnits));
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}", produces={"application/json; charset=UTF-8"})
+    @RequestMapping(method = RequestMethod.GET, value = "/content/{id}")
     @ApiOperation(value = "get a specific content item")
     public ResponseEntity<String> getContent(@PathVariable Integer id) throws JsonProcessingException {
         final Content item = contentRepository.findOne(id);
