@@ -1,4 +1,4 @@
-FROM            maven:3.5.4-jdk-8
+FROM            maven:3.5.4-jdk-8 AS prepare
 MAINTAINER      Sam Kavanagh "s.kavanagh@auckland.ac.nz"
 
 ARG             http_proxy
@@ -24,10 +24,19 @@ RUN		if [ -z $http_proxy ]; then \
 			mvn verify clean --fail-never; \
 		fi;
 
+FROM		prepare AS dev
+VOLUME		["/research-hub-api/src","/application.properties","research-hub-api/target"]
+
+ENTRYPOINT	["mvn","spring-boot:run","-Drun.jvmArguments=-Dspring.config.location=/application.properties"]
+
+
+FROM		prepare AS build
+
 # Copy src files and build project
 COPY            /src /research-hub-api/src
 COPY            application.properties /
 RUN             mvn -o package
 RUN             mv target/app.jar /app.jar
+
 
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.config.location=file:/application.properties","-jar","/app.jar"]
