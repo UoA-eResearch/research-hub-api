@@ -24,7 +24,7 @@ RUN		if [ -z $http_proxy ]; then \
 			mvn verify clean --fail-never; \
 		fi;
 
-FROM		prepare AS dev
+FROM		prepare AS local
 VOLUME		["/research-hub-api/src","/application.properties","research-hub-api/target"]
 
 ENTRYPOINT	["mvn","spring-boot:run","-Drun.jvmArguments=-Dspring.config.location=/application.properties"]
