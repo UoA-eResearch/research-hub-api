@@ -13,7 +13,6 @@ WORKDIR         /research-hub-api/
 
 
 FROM		prepare AS local
-
 # Create a user in the image that has the same UID as the host user and run the Docker image as the user, so that generated classfiles can be shared between host and image.
 # Default user id to 1000 if not set in hub.env.
 ARG		current_uid=1000
@@ -42,8 +41,8 @@ RUN		if [ -z $http_proxy ]; then \
 # Copy src files and build project
 COPY            /src /research-hub-api/src
 COPY            application.properties /
+COPY		docker-entrypoint.sh /
 RUN             mvn -o package
 RUN             mv target/app.jar /app.jar
 
-
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.config.location=file:/application.properties","-jar","/app.jar"]
+ENTRYPOINT      ["/docker-entrypoint.sh"]

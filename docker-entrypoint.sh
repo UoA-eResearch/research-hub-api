@@ -1,9 +1,9 @@
 #!/bin/bash
 
 if [ "$1" == "--local" ]; then
-    # Change the permission for 
-    chown -R rhapi-user /research-hub-api/target/
     # If the local flag is passed, we run a version of the rh api project set up for development.
+    # Change the permission for the target folder.
+    chown -R rhapi-user /research-hub-api/target/
     # Run as user with uid matching the host user, so generated directories and classfiles
     # can be accessed/changed by host.
     su - rhapi-user
@@ -13,3 +13,5 @@ if [ "$1" == "--local" ]; then
     mvn spring-boot:run -Drun.jvmArguments=-Dspring.config.location=/application.properties
     exit
 fi
+
+java -Djava.security.egd=file:/dev/./urandom -Dspring.config.location=file:/application.properties -jar /app.jar
