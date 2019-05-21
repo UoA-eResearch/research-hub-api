@@ -23,3 +23,6 @@ nbdist/
 .nb-gradle/
 
 data/
+
+### Ignore generated classfiles ###
+target/
