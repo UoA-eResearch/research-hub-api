@@ -96,7 +96,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20171018</version>
+            <version>20230227</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-model -->
